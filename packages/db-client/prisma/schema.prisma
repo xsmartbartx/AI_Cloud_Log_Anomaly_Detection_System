@@ -28,6 +28,8 @@ model Tenant {
   integrations     Integration[]
   feedback         Feedback[]
   auditLogs        AuditLog[]
+
+  @@map("tenants")
 }
 
 model Role {
@@ -39,6 +41,7 @@ model Role {
   userRoles UserRole[]
 
   @@unique([tenantId, name])
+  @@map("roles")
 }
 
 model User {
@@ -57,6 +60,7 @@ model User {
   auditLogs AuditLog[]
 
   @@unique([tenantId, email])
+  @@map("users")
 }
 
 model UserRole {
@@ -66,6 +70,7 @@ model UserRole {
   role   Role   @relation(fields: [roleId], references: [id], onDelete: Cascade)
 
   @@id([userId, roleId])
+  @@map("user_roles")
 }
 
 model Service {
@@ -84,6 +89,7 @@ model Service {
   anomalies      Anomaly[]
 
   @@unique([tenantId, slug])
+  @@map("services")
 }
 
 model LogSource {
@@ -99,6 +105,8 @@ model LogSource {
 
   tenant  Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   service Service? @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+
+  @@map("log_sources")
 }
 
 model ModelVersion {
@@ -116,6 +124,7 @@ model ModelVersion {
   anomalies Anomaly[]
 
   @@unique([tenantId, name, version])
+  @@map("model_versions")
 }
 
 model FeatureWindow {
@@ -139,6 +148,7 @@ model FeatureWindow {
 
   @@unique([tenantId, serviceId, windowStart, windowSeconds])
   @@index([tenantId, serviceId, windowStart])
+  @@map("feature_windows")
 }
 
 model Anomaly {
@@ -162,6 +172,7 @@ model Anomaly {
   feedback      Feedback[]
 
   @@index([tenantId, serviceId, createdAt])
+  @@map("anomalies")
 }
 
 model AlertPolicy {
@@ -177,6 +188,8 @@ model AlertPolicy {
 
   tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   alerts Alert[]
+
+  @@map("alert_policies")
 }
 
 model Alert {
@@ -194,6 +207,8 @@ model Alert {
   tenant   Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   anomaly  Anomaly?     @relation(fields: [anomalyId], references: [id], onDelete: SetNull)
   policy   AlertPolicy? @relation(fields: [policyId], references: [id], onDelete: SetNull)
+
+  @@map("alerts")
 }
 
 model Integration {
@@ -207,6 +222,8 @@ model Integration {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("integrations")
 }
 
 model Feedback {
@@ -221,6 +238,8 @@ model Feedback {
   tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   anomaly Anomaly @relation(fields: [anomalyId], references: [id], onDelete: Cascade)
   user    User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@map("feedback")
 }
 
 model AuditLog {
@@ -238,4 +257,5 @@ model AuditLog {
   user   User?  @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([tenantId, createdAt])
+  @@map("audit_logs")
 }
