@@ -1,0 +1,241 @@
+// AI Cloud Log Anomaly Detection System – DB Schema (SPECIFICATION §12)
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Tenant {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name      String   @db.VarChar(255)
+  slug      String   @unique @db.VarChar(64)
+  config    Json     @default("{}")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  roles            Role[]
+  users            User[]
+  services         Service[]
+  logSources       LogSource[]
+  modelVersions    ModelVersion[]
+  featureWindows   FeatureWindow[]
+  anomalies        Anomaly[]
+  alertPolicies    AlertPolicy[]
+  alerts           Alert[]
+  integrations     Integration[]
+  feedback         Feedback[]
+  auditLogs        AuditLog[]
+}
+
+model Role {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId  String   @map("tenant_id") @db.Uuid
+  name      String   @db.VarChar(64)
+  permissions Json   @default("[]")
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  userRoles UserRole[]
+
+  @@unique([tenantId, name])
+}
+
+model User {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId     String    @map("tenant_id") @db.Uuid
+  email        String    @db.VarChar(255)
+  passwordHash String?   @map("password_hash") @db.VarChar(255)
+  name         String?   @db.VarChar(255)
+  isActive     Boolean   @default(true) @map("is_active")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  tenant    Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  userRoles UserRole[]
+  feedback  Feedback[]
+  auditLogs AuditLog[]
+
+  @@unique([tenantId, email])
+}
+
+model UserRole {
+  userId String @map("user_id") @db.Uuid
+  roleId String @map("role_id") @db.Uuid
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role   Role   @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+}
+
+model Service {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId    String   @map("tenant_id") @db.Uuid
+  name        String   @db.VarChar(255)
+  slug        String   @db.VarChar(64)
+  environment String?  @db.VarChar(32)
+  config      Json     @default("{}")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  tenant         Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  logSources     LogSource[]
+  featureWindows FeatureWindow[]
+  anomalies      Anomaly[]
+
+  @@unique([tenantId, slug])
+}
+
+model LogSource {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId        String   @map("tenant_id") @db.Uuid
+  serviceId       String?  @map("service_id") @db.Uuid
+  name            String   @db.VarChar(255)
+  sourceType      String   @map("source_type") @db.VarChar(64)
+  connectionConfig Json    @map("connection_config")
+  isActive        Boolean  @default(true) @map("is_active")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  tenant  Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  service Service? @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+}
+
+model ModelVersion {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId      String   @map("tenant_id") @db.Uuid
+  name          String   @db.VarChar(128)
+  version       String   @db.VarChar(64)
+  modelType     String   @map("model_type") @db.VarChar(64)
+  artifactPath  String?  @map("artifact_path") @db.VarChar(512)
+  config        Json     @default("{}")
+  isActive      Boolean  @default(false) @map("is_active")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  tenant    Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  anomalies Anomaly[]
+
+  @@unique([tenantId, name, version])
+}
+
+model FeatureWindow {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId        String   @map("tenant_id") @db.Uuid
+  serviceId       String   @map("service_id") @db.Uuid
+  windowStart     DateTime @map("window_start")
+  windowEnd       DateTime @map("window_end")
+  windowSeconds   Int      @map("window_seconds")
+  eventCount      BigInt   @default(0) @map("event_count")
+  errorRate       Decimal  @default(0) @map("error_rate") @db.Decimal(5, 4)
+  uniqueUsers     Int      @default(0) @map("unique_users")
+  ipEntropy       Decimal? @map("ip_entropy") @db.Decimal(10, 6)
+  responseTimeAvg Decimal? @map("response_time_avg") @db.Decimal(12, 4)
+  featureVector   Json?    @map("feature_vector")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  tenant   Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  service  Service   @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  anomalies Anomaly[]
+
+  @@unique([tenantId, serviceId, windowStart, windowSeconds])
+  @@index([tenantId, serviceId, windowStart])
+}
+
+model Anomaly {
+  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId         String   @map("tenant_id") @db.Uuid
+  serviceId        String   @map("service_id") @db.Uuid
+  featureWindowId  String?  @map("feature_window_id") @db.Uuid
+  modelVersionId   String?  @map("model_version_id") @db.Uuid
+  score            Decimal  @db.Decimal(5, 4)
+  severity         String   @db.VarChar(32)
+  anomalyType      String?  @map("anomaly_type") @db.VarChar(32)
+  explanation      String?  @db.Text
+  shapValues       Json?    @map("shap_values")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  tenant        Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  service       Service        @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  featureWindow FeatureWindow? @relation(fields: [featureWindowId], references: [id], onDelete: SetNull)
+  modelVersion  ModelVersion?  @relation(fields: [modelVersionId], references: [id], onDelete: SetNull)
+  alerts        Alert[]
+  feedback      Feedback[]
+
+  @@index([tenantId, serviceId, createdAt])
+}
+
+model AlertPolicy {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId        String   @map("tenant_id") @db.Uuid
+  name            String   @db.VarChar(255)
+  conditions      Json
+  severityMapping Json     @default("{}") @map("severity_mapping")
+  cooldownSeconds Int      @default(300) @map("cooldown_seconds")
+  isActive        Boolean  @default(true) @map("is_active")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  alerts Alert[]
+}
+
+model Alert {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId  String    @map("tenant_id") @db.Uuid
+  anomalyId String?   @map("anomaly_id") @db.Uuid
+  policyId  String?   @map("policy_id") @db.Uuid
+  severity  String    @db.VarChar(32)
+  channel   String    @db.VarChar(64)
+  payload   Json
+  status    String    @default("sent") @db.VarChar(32)
+  sentAt    DateTime? @map("sent_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  tenant   Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  anomaly  Anomaly?     @relation(fields: [anomalyId], references: [id], onDelete: SetNull)
+  policy   AlertPolicy? @relation(fields: [policyId], references: [id], onDelete: SetNull)
+}
+
+model Integration {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId  String   @map("tenant_id") @db.Uuid
+  type      String   @db.VarChar(64)
+  name      String   @db.VarChar(255)
+  config    Json
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+}
+
+model Feedback {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId       String   @map("tenant_id") @db.Uuid
+  anomalyId      String   @map("anomaly_id") @db.Uuid
+  userId         String?  @map("user_id") @db.Uuid
+  isTruePositive Boolean  @map("is_true_positive")
+  comment        String?  @db.Text
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  anomaly Anomaly @relation(fields: [anomalyId], references: [id], onDelete: Cascade)
+  user    User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+}
+
+model AuditLog {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId     String   @map("tenant_id") @db.Uuid
+  userId       String?  @map("user_id") @db.Uuid
+  action       String   @db.VarChar(64)
+  resourceType String?  @map("resource_type") @db.VarChar(64)
+  resourceId   String?  @map("resource_id") @db.Uuid
+  details      Json?
+  ipAddress    String?  @map("ip_address") @db.VarChar(45)
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user   User?  @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, createdAt])
+}
