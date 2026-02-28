@@ -4,9 +4,12 @@
   "private": true,
   "description": "AI Cloud Log Anomaly Detection System – monorepo",
   "scripts": {
-    "build": "pnpm -r run build",
-    "dev": "pnpm -r run dev --parallel",
-    "clean": "pnpm -r run clean"
+    "build": "npm run build -w packages/shared-types && npm run build -w packages/config && npm run build -w packages/db-client",
+    "dev": "npm run dev --workspaces --if-present",
+    "clean": "npm run clean --workspaces --if-present",
+    "db:generate": "npm run db:generate -w @anomaly/db-client",
+    "db:migrate": "npm run db:migrate -w @anomaly/db-client",
+    "db:migrate:dev": "npm run db:migrate:dev -w @anomaly/db-client"
   },
   "engines": {
     "node": ">=18"
