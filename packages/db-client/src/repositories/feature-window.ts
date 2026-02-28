@@ -1,5 +1,4 @@
 import { prisma } from '../client.js';
-import type { Prisma } from '@prisma/client';
 
 export async function upsertFeatureWindow(data: {
   tenantId: string;
@@ -14,9 +13,9 @@ export async function upsertFeatureWindow(data: {
   responseTimeAvg?: number;
   featureVector?: number[] | object;
 }) {
-  const payload: Prisma.FeatureWindowCreateInput = {
-    tenantId: data.tenantId,
-    serviceId: data.serviceId,
+  const createPayload = {
+    tenant: { connect: { id: data.tenantId } },
+    service: { connect: { id: data.serviceId } },
     windowStart: data.windowStart,
     windowEnd: data.windowEnd,
     windowSeconds: data.windowSeconds,
@@ -37,7 +36,7 @@ export async function upsertFeatureWindow(data: {
         windowSeconds: data.windowSeconds,
       },
     },
-    create: payload,
+    create: createPayload,
     update: {
       windowEnd: data.windowEnd,
       eventCount: data.eventCount,

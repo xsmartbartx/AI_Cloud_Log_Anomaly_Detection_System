@@ -21,7 +21,7 @@ export async function insertAnomaly(data: {
       severity: data.severity,
       anomalyType: data.anomalyType ?? null,
       explanation: data.explanation ?? null,
-      shapValues: data.shapValues ? (data.shapValues as object) : null,
+      shapValues: data.shapValues ?? undefined,
     },
   });
 }
