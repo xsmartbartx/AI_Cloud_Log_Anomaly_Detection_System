@@ -12,5 +12,12 @@
     "node": ">=18"
   },
   "packageManager": "pnpm@9.0.0",
-  "workspaces": ["apps/*", "packages/*"]
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "devDependencies": {
+    "@prisma/client": "^7.4.2",
+    "prisma": "^7.4.2"
+  }
 }
