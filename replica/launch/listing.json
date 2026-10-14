@@ -1,0 +1,16 @@
+{
+  "avoid": ["Microsoft", "Azure", "Microsoft Sentinel", "SentinelOne", "Datadog", "Splunk", "Papertrail", "Better Stack"],
+  "app_store": {
+    "name": "Lineworth",
+    "subtitle": "The ten lines worth reading",
+    "promotional_text": "Paste a log, get the lines that matter with a reason for each. Flat price per scan.",
+    "description": "Lineworth reads a log sample and returns the ten lines worth your attention, ranked, each with the reason it was picked.\n\nPaste a sample. Rules catch the known problems. Frequency analysis catches lines that look unlike the rest. You get a short list instead of ten thousand lines.\n\nWhat you get:\n- Ten ranked lines, each with a reason and line number\n- Flat monthly price per scan, with a hard cap and no overage bill\n- Nothing stored by default; secrets masked in results\n- Your own rules and an API for CI\n\nFree for 20 scans a month.",
+    "keywords": "log,logs,analysis,errors,debug,anomaly,triage,devops,sre,incident",
+    "whats_new": "First release."
+  },
+  "google_play": {
+    "title": "Lineworth",
+    "short_description": "Paste a log, get the ten lines worth reading, with a reason for each.",
+    "full_description": "Lineworth reads a log sample and returns the ten lines worth your attention, ranked, each with the reason it was picked.\n\nFlat monthly price per scan. A hard cap instead of an overage bill. Nothing stored by default.\n\nFree for 20 scans a month."
+  }
+}
