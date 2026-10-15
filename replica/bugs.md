@@ -28,3 +28,6 @@ Status: fixed. The e2e run (fresh `.data/e2e`) exercises this path every time.
 - Clerk `org:admin` to owner mapping means a plain org member cannot create keys; confirm that is the intended product rule.
 - In-memory rate limiter resets per instance and on restart.
 - `npm audit`: postcss advisory via Next 15 (fix needs Next 16).
+
+## Flake fixed in CI simulation (2026-10-15)
+F01-H1 failed once in a clean clone: axe reported `document-title` while the page was mid-render after a server action on a cold dev compile. Not reproduced in 5 local full runs. The a11y helper now waits for a non-empty title before scanning. If it returns in production builds, treat it as a real S3 (title missing after scan).

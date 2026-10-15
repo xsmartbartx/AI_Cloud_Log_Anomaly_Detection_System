@@ -11,6 +11,9 @@ export function guard(page: Page) {
 }
 
 export async function a11y(page: Page) {
+  // After a client navigation or a server action the title can be briefly empty on a cold dev compile.
+  // Wait for the settled page; the scan still fails if the title never appears.
+  await expect(page).toHaveTitle(/.+/);
   const r = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
   expect(r.violations.map((v) => `${v.id}: ${v.nodes.length} (${v.help})`)).toEqual([]);
 }
