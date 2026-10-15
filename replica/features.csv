@@ -13,7 +13,7 @@ Usage reported to NEXORA Console,integration,must,yes,partial,"GET /api/internal
 Pricing page with monthly/yearly toggle,marketing,must,yes,yes,
 Scan history (metadata),dashboard,should,unknown,yes,Postgres
 Upload log file,scan,should,unknown,yes,
-Export results (JSON/CSV/copy),results,should,unknown,no,
+Export results (JSON/CSV/copy),results,should,unknown,yes,"copy JSON, download JSON and CSV (formula-safe); e2e F08-H2"
 API keys and REST scan endpoint,developer,should,unknown,yes,"verified end to end with a real key; sha256 stored, rate limited"
 Docs and quickstart,developer,should,yes,yes,
 Custom rules,detection,should,unknown,yes,"RE2 safe engine, 200-char cap"
@@ -28,6 +28,6 @@ Live cloud log connections,connect,could,roadmap,skip,streaming platform; deferr
 AI/LLM deep analysis,detection,could,roadmap,skip,needs model decision
 Compliance badges,trust,could,no,skip,NEXORA avoids badge wall
 Ignore lines like this (mute a shape or rule per org),results,should,no,no,entrepreneur: noise + what-to-read themes; creates an exclude rule
-Mask secrets in the browser before the sample is sent,privacy,should,no,no,"entrepreneur: paste-into-AI privacy, 2 comments; detector is pure TS so it can run client-side"
+Mask secrets in the browser before the sample is sent,privacy,should,no,yes,"on by default, covers pasted text and uploaded files; e2e proves the secret is absent from the request body"
 "Spend cap guarantee: no overage billing, stated on site and pricing",billing,should,no,yes,"entrepreneur: cost theme, 17 comments (1 source). Behaviour exists (hard quota); copy goes to /replica-launch; stated on landing and pricing pages"
 New since last scan (compare shape hashes to previous scan),results,could,no,no,entrepreneur: what-to-read theme; needs a privacy decision on storing shape hashes

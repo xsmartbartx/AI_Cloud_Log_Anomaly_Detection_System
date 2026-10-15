@@ -93,7 +93,7 @@ type Candidate = {
 export function detect(input: string, opts: DetectOptions = {}): ScanResult {
   const now = opts.now ?? Date.now;
   const t0 = now();
-  const byteCount = Buffer.byteLength(input, "utf8");
+  const byteCount = new TextEncoder().encode(input).length;
   if (byteCount > LIMITS.maxBytes) throw new InputError("too_large", "Sample is larger than 5 MB.");
 
   const rawLines = input.split(/\r?\n/);

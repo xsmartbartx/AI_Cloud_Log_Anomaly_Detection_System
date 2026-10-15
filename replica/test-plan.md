@@ -1,6 +1,6 @@
 # Test plan
 
-Date: 2026-10-14. Target: local Sentinel (apps/sentinel-web) with a fresh PGlite database per run. Run: `npm run test:e2e -w @anomaly/sentinel-web` (Playwright, installed Chrome), `npm test -w @anomaly/sentinel-web` (store, 10), `npm test -w @anomaly/detector` (8).
+Date: 2026-10-14. Target: local Sentinel (apps/sentinel-web) with a fresh PGlite database per run. Run: `npm run test:e2e -w @anomaly/sentinel-web` (Playwright, installed Chrome), `npm test -w @anomaly/sentinel-web` (store and export, 12), `npm test -w @anomaly/detector` (8).
 Every e2e spec fails on console errors, page errors and 5xx (except where a case expects one) and runs an axe WCAG 2 A/AA scan.
 
 | case | what | result |
@@ -29,6 +29,8 @@ Every e2e spec fails on console errors, page errors and 5xx (except where a case
 | F04-N3 | unsigned Stripe, Clerk, Console, cron calls refused | pass |
 | F05-N1 | invalid and over-long rule patterns rejected | pass |
 | F05-H1 | custom rule flags a line, off stops it, delete | pass |
+| F08-H1/E1/E2 | secrets masked in the browser: absent from the request body (paste and file), present when masking is off | pass |
+| F08-H2 | download CSV (formula-safe) and JSON | pass |
 | unit | charge, refund, concurrent quota, retention, tenant isolation, roles, RE2, key hash, Stripe idempotency, cascade delete | pass |
 
 ## Not covered, needs the user's services or a human
