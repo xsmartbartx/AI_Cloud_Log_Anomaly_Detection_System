@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { guard } from "./helpers";
 import { LOG } from "./helpers";
 
 const SECRET_LINE = "ERROR login failed password=hunter2 for user";
@@ -51,6 +52,7 @@ test.describe("F08 export and in-browser masking", () => {
   });
 
   test("F08-E2 file upload is masked in the browser too", async ({ page }) => {
+    const done = guard(page); // a dispatch outside a transition shows up as a console error
     const bodies: string[] = [];
     page.on("request", (r) => { if (r.method() === "POST" && r.url().includes("/app/scan")) bodies.push(r.postData() ?? ""); });
     await page.goto("/app/scan");
@@ -58,5 +60,6 @@ test.describe("F08 export and in-browser masking", () => {
     await page.getByRole("button", { name: "Run scan" }).click();
     await expect(page.getByRole("heading", { name: "Results" })).toBeVisible();
     expect(bodies.join("\n")).not.toContain("hunter2");
+    done();
   });
 });

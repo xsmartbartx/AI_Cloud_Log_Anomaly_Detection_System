@@ -31,6 +31,8 @@ Every e2e spec fails on console errors, page errors and 5xx (except where a case
 | F05-H1 | custom rule flags a line, off stops it, delete | pass |
 | F08-H1/E1/E2 | secrets masked in the browser: absent from the request body (paste and file), present when masking is off | pass |
 | F08-H2 | download CSV (formula-safe) and JSON | pass |
+| F09 | member role: can scan, no key/rule/retention controls, forged submit is a no-op (second dev server) | pass |
+| prod | production build + real Postgres: public pages, /design 404, fails closed, API scan/charge/401/413/400/402, unsigned webhooks | pass (local Postgres 16) |
 | unit | charge, refund, concurrent quota, retention, tenant isolation, roles, RE2, key hash, Stripe idempotency, cascade delete | pass |
 
 ## Not covered, needs the user's services or a human

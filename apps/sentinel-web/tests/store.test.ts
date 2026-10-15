@@ -5,6 +5,8 @@ import { createStore, compileRule, orgFromRow, sha256, type Ctx } from "../lib/s
 import { ForbiddenError } from "../lib/authz";
 import { applyStripeEvent, canStartCheckout } from "../lib/billing";
 import { applyClerkEvent } from "../lib/clerk-events";
+import { provision } from "../lib/provision";
+import { noopIfForbidden } from "../lib/safe-action";
 
 let db: Db;
 before(async () => {
@@ -191,4 +193,31 @@ test("clerk deletion events are atomic and idempotent", async () => {
   const o = await mkCtx("clk2");
   assert.equal(await applyClerkEvent(db, "svix_2", { type: "organization.deleted", data: { id: "clk2" } }), "applied");
   assert.equal((await db.query("select 1 from organizations where id=$1", [o.org.id])).length, 0);
+});
+
+test("provision: a returning member costs no writes and no identity-provider call (review)", async () => {
+  let emailCalls = 0;
+  const who = { clerkOrgId: "prov1", orgName: "Prov One", clerkUserId: "u_prov1", role: "owner" as const };
+  const getEmail = async () => { emailCalls++; return "p@prov.test"; };
+
+  const first = await provision(db, who, getEmail);
+  assert.equal(first.member.email, "p@prov.test");
+  assert.equal(emailCalls, 1);
+  const [before] = await db.query<{ o: string; m: string }>("select (select updated_at::text from organizations where id=$1) o, (select updated_at::text from members where id=$2) m", [first.org.id, first.member.id]);
+
+  const again = await provision(db, who, getEmail);
+  assert.equal(again.member.id, first.member.id);
+  assert.equal(emailCalls, 1, "no second Clerk call");
+  const [after] = await db.query<{ o: string; m: string }>("select (select updated_at::text from organizations where id=$1) o, (select updated_at::text from members where id=$2) m", [first.org.id, first.member.id]);
+  assert.deepEqual(after, before, "rows untouched on a returning visit");
+
+  const demoted = await provision(db, { ...who, role: "member" }, getEmail);
+  assert.equal(demoted.member.role, "member");
+  assert.equal(emailCalls, 1);
+  assert.equal((await db.query("select 1 from members where org_id=$1", [first.org.id])).length, 1, "still one member row");
+});
+
+test("noopIfForbidden swallows role errors only", async () => {
+  await noopIfForbidden(async () => { throw new ForbiddenError("keys:write"); });
+  await assert.rejects(() => noopIfForbidden(async () => { throw new Error("real failure"); }), /real failure/);
 });

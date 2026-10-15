@@ -39,8 +39,8 @@ export const BUILTIN_RULES: Rule[] = [
   { id: "conn", name: "Connection failure", pattern: /connection (refused|reset|timed out)|econnrefused|econnreset|no route to host|unreachable/i, severity: "high" },
   { id: "exception", name: "Exception or error", pattern: /\bexception\b|\berror\b|\bfailed\b|traceback|stack trace/i, severity: "medium" },
   { id: "timeout", name: "Timeout", pattern: /time(d)? ?out|deadline exceeded/i, severity: "medium" },
-  { id: "http5xx", name: "Server error status", pattern: /\b(HTTP\/\d(\.\d)?"?\s+|status[=: ]+|\s)5\d\d\b/i, severity: "medium" },
-  { id: "retry", name: "Retries or throttling", pattern: /\bretry(ing)?\b|rate limit|throttl|too many requests|\b429\b/i, severity: "low" },
+  { id: "http5xx", name: "Server error status", pattern: /\b(HTTP\/\d(\.\d)?"?\s+|(status|code)[=: ]+)5\d\d\b/i, severity: "medium" },
+  { id: "retry", name: "Retries or throttling", pattern: /\bretry(ing)?\b|rate limit|throttl|too many requests|\b(HTTP\/\d(\.\d)?"?\s+|(status|code)[=: ]+)429\b/i, severity: "low" },
   { id: "warn", name: "Warning", pattern: /\bwarn(ing)?\b|deprecated/i, severity: "low" },
 ];
 
@@ -52,7 +52,7 @@ const SHAPE_MASKS: Array<[RegExp, string]> = [
   [/\b\d{1,3}(\.\d{1,3}){3}(:\d+)?\b/g, "<ip>"],
   [/\b0x[0-9a-f]+\b/gi, "<hex>"],
   [/\b[0-9a-f]{16,}\b/gi, "<hex>"],
-  [/(?<![a-z0-9_])\d+(\.\d+)?/gi, "<n>"],
+  [/(^|[^a-z0-9_])\d+(\.\d+)?/gi, "$1<n>"], // no lookbehind: this module also runs in the browser
 ];
 
 export function shapeOf(line: string): string {

@@ -1,5 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { detect, redact, shapeOf, InputError, LIMITS } from "./index.ts";
 
 const noisy = (n: number) =>
@@ -49,4 +50,22 @@ test("input limits", () => {
 test("authorization headers keep their scheme and mask only the secret (BUG-002)", () => {
   assert.equal(redact("Authorization: Bearer abcdef1234567890"), "Authorization: Bearer [redacted]");
   assert.equal(redact("authorization=Basic dXNlcjpwYXNz"), "authorization=Basic [redacted]");
+});
+
+test("5xx rule needs an HTTP or status context, not any 5xx-looking number (review)", () => {
+  const base = Array.from({ length: 30 }, (_, i) => `2026-10-13T10:00:${String(i).padStart(2, "0")}Z INFO ok ${i}ms`);
+  const flagged = (line: string) => detect([...base, line].join("\n")).findings.some((f) => f.text.includes(line.slice(0, 20)) && f.reason === "rule");
+  assert.equal(flagged("processed 500 items for batch"), false);
+  assert.equal(flagged("queue length 503 and growing"), false);
+  assert.equal(flagged('"GET /api/orders HTTP/1.1" 502 1234'), true);
+  assert.equal(flagged("upstream replied status=503 after 2s"), true);
+  assert.equal(flagged("response status: 500"), true);
+});
+
+test("shape masking keeps working without lookbehind (review)", () => {
+  assert.equal(shapeOf("took 12ms for 3 items, x10 stays, v2"), "took <n>ms for <n> items, x10 stays, v2");
+  assert.equal(shapeOf("1 2 3"), "<n> <n> <n>");
+  assert.equal(shapeOf("a1.5 b 7.25"), "a1.<n> b <n>"); // same as before the change
+  // Safari before 16.4 cannot parse lookbehind, and this module loads in the browser.
+  assert.ok(!/\(\?<[!=]/.test(readFileSync(new URL("./index.ts", import.meta.url), "utf8")), "no lookbehind in the detector source");
 });

@@ -63,7 +63,7 @@ export async function createPgliteDb(dataDir?: string): Promise<Db> {
 }
 
 export function createPgDb(url: string): Db {
-  const pool = new Pool({ connectionString: url, max: 10 });
+  const pool = new Pool({ connectionString: url, max: Number(process.env.PG_POOL_MAX ?? 10) });
   return {
     async query(sql, params) {
       return (await pool.query(sql, params as never[] | undefined)).rows as never;

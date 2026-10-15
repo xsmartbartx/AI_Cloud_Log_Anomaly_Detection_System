@@ -6,6 +6,7 @@ import { store, LIMITS } from "./store";
 import { ForbiddenError } from "./authz";
 import { rateLimit } from "./ratelimit";
 import { requireCtx } from "./auth";
+import { noopIfForbidden } from "./safe-action";
 
 const SEVERITIES = ["critical", "high", "medium", "low"] as const;
 const msg = (e: unknown, fallback: string) => (e instanceof ForbiddenError || e instanceof Error ? e.message : fallback);
@@ -50,7 +51,7 @@ export async function createKeyAction(_p: KeyState, form: FormData): Promise<Key
   } catch (e) { return { status: "error", message: msg(e, "Could not create the key.") }; }
 }
 export async function revokeKeyAction(form: FormData) {
-  await (await store()).revokeKey(String(form.get("id")));
+  await noopIfForbidden(async () => (await store()).revokeKey(String(form.get("id"))));
   revalidatePath("/app/keys");
 }
 
@@ -68,6 +69,6 @@ export async function addRuleAction(_p: RuleState, form: FormData): Promise<Rule
   revalidatePath("/app/rules");
   return { status: "ok" };
 }
-export async function toggleRuleAction(form: FormData) { await (await store()).toggleRule(String(form.get("id"))); revalidatePath("/app/rules"); }
-export async function deleteRuleAction(form: FormData) { await (await store()).deleteRule(String(form.get("id"))); revalidatePath("/app/rules"); }
-export async function retentionAction(form: FormData) { await (await store()).setRetention(form.get("retain") === "on"); revalidatePath("/app/settings"); }
+export async function toggleRuleAction(form: FormData) { await noopIfForbidden(async () => (await store()).toggleRule(String(form.get("id")))); revalidatePath("/app/rules"); }
+export async function deleteRuleAction(form: FormData) { await noopIfForbidden(async () => (await store()).deleteRule(String(form.get("id")))); revalidatePath("/app/rules"); }
+export async function retentionAction(form: FormData) { await noopIfForbidden(async () => (await store()).setRetention(form.get("retain") === "on")); revalidatePath("/app/settings"); }

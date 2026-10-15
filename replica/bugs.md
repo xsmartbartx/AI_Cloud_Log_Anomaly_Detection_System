@@ -6,6 +6,7 @@
 | BUG-002 | S4 | `Authorization: Bearer x` masked as `Authorization: [redacted] [redacted]` | fixed (uncommitted): redaction rule split, test added in detect.test.ts |
 | BUG-003 | S2 | Dev server returned 500 on first DB use: `.data/` directory not created | fixed (uncommitted): mkdir in createPgliteDb |
 | BUG-004 | S3 | Dev server kept a failed DB start cached until restart | fixed (uncommitted): failed promise cleared |
+| BUG-005 | S2 | `npm run db:migrate` and `db:seed` crashed (top-level await in a CommonJS package); the production deploy step had never been run | fixed: wrapped in main(); verified on real Postgres 16, idempotent. Found by the new production smoke job |
 
 ### BUG-001: Missing favicon
 - Severity: S4 · Flow: all · Screen: every · Browser: Chrome, 1440px
@@ -31,3 +32,11 @@ Status: fixed. The e2e run (fresh `.data/e2e`) exercises this path every time.
 
 ## Flake fixed in CI simulation (2026-10-15)
 F01-H1 failed once in a clean clone: axe reported `document-title` while the page was mid-render after a server action on a cold dev compile. Not reproduced in 5 local full runs. The a11y helper now waits for a non-empty title before scanning. If it returns in production builds, treat it as a real S3 (title missing after scan).
+
+## Code review round 2 (2026-10-15): the six remaining findings
+- Per-request Clerk call and writes: `lib/provision.ts` does reads only for a returning member and calls Clerk only when creating the member row; `requireCtx` is wrapped in React `cache()` so a request resolves it once. Unit test proves no second Clerk call and untouched rows.
+- 5xx rule: needs an HTTP or `status=`/`code=` context. 429 got the same treatment. Tests for "processed 500 items" (not flagged) and real status lines (flagged).
+- Role errors: revoke, toggle, delete and retention are no-ops for roles that cannot use them, and the controls are hidden or disabled. A second dev server signed in as a member (`DEMO_ROLE=member`, dev only) runs 3 e2e tests, including a forged submit.
+- Lookbehind regex removed from the detector (it runs in the browser). Test fails if one returns.
+- Upload dispatch is now inside `startTransition`; the upload e2e has a console-error guard. I did not confirm the old code produced a warning, so this one is a fix by reasoning, not a reproduced bug.
+- Production-build coverage: `playwright.prod.config.ts` and `e2e-prod/` run against `next start` with real Postgres (CI job `e2e-prod`, Postgres 16 service). Verified locally against a Postgres 16 container.

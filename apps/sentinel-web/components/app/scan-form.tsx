@@ -1,5 +1,5 @@
 "use client";
-import { useActionState, useRef, useState } from "react";
+import { startTransition, useActionState, useRef, useState } from "react";
 import { redact } from "@anomaly/detector";
 import { Button } from "@/components/ui/button";
 import { LogArea } from "@/components/ui/field";
@@ -29,7 +29,8 @@ export function ScanForm({ sample, exhausted }: { sample: string; exhausted: boo
       }
       form.set("sample", redact(text));
     }
-    action(form);
+    // After an await the form action's transition is gone, so dispatch inside a new one.
+    startTransition(() => action(form));
   }
 
   return (

@@ -1,6 +1,8 @@
 /** @type {import('next').NextConfig} */
 export default {
   reactStrictMode: true,
+  // The e2e suite runs a second dev server (as a member) and needs its own build directory.
+  distDir: process.env.NEXT_DIST_DIR || ".next",
   transpilePackages: ["@anomaly/detector"],
   // Native / WASM packages must not be bundled.
   // Samples are capped at 4 MB (LIMITS.maxBytes); the default 1 MB server-action cap would reject them first.

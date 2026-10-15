@@ -3,12 +3,14 @@ import { Button } from "@/components/ui/button";
 import { Table, Th, Td } from "@/components/ui/table";
 import { store } from "@/lib/store";
 import { requireCtx } from "@/lib/auth";
+import { can } from "@/lib/authz";
 import { retentionAction } from "@/lib/actions";
 
 export const metadata = { title: "Settings · Lineworth" };
 
 export default async function Settings() {
-  const [{ org }, members] = await Promise.all([requireCtx(), store().then((s) => s.listMembers())]);
+  const [{ org, member }, members] = await Promise.all([requireCtx(), store().then((s) => s.listMembers())]);
+  const manage = can(member.role, "settings:write");
   return (
     <div className="max-w-3xl space-y-8">
       <h1 className="text-xl">Settings</h1>
@@ -21,9 +23,10 @@ export default async function Settings() {
         <p className="mt-1 text-sm text-muted">Off by default. When on, flagged lines (with secrets masked) are saved so you can reopen them from History. Full samples are never kept.</p>
         <form action={retentionAction} className="mt-4 flex items-center gap-3">
           <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" name="retain" defaultChecked={org.retainSamples} className="size-4 accent-[var(--c-accent)]" /> Keep findings for new scans
+            <input type="checkbox" name="retain" defaultChecked={org.retainSamples} disabled={!manage} className="size-4 accent-[var(--c-accent)]" /> Keep findings for new scans
           </label>
-          <Button size="sm" type="submit">Save</Button>
+          {!manage && <span className="text-xs text-muted">Only owners and admins can change this.</span>}
+          <Button size="sm" type="submit" disabled={!manage}>Save</Button>
         </form>
       </Card>
       <section className="space-y-3">

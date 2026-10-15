@@ -10,7 +10,8 @@
     "db:migrate": "tsx scripts/migrate.ts",
     "db:seed": "tsx scripts/seed.ts",
     "test": "tsx --test tests/*.test.ts",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:e2e:prod": "playwright test -c playwright.prod.config.ts"
   },
   "dependencies": {
     "@anomaly/detector": "*",
