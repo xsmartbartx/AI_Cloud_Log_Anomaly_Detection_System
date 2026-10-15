@@ -3,7 +3,8 @@ import assert from "node:assert/strict";
 import { createPgliteDb, migrate, type Db } from "../lib/db";
 import { createStore, compileRule, orgFromRow, sha256, type Ctx } from "../lib/store";
 import { ForbiddenError } from "../lib/authz";
-import { applyStripeEvent } from "../lib/billing";
+import { applyStripeEvent, canStartCheckout } from "../lib/billing";
+import { applyClerkEvent } from "../lib/clerk-events";
 
 let db: Db;
 before(async () => {
@@ -134,4 +135,60 @@ test("deleting an organization removes its data", async () => {
   for (const t of ["scans", "findings", "api_keys", "members", "usage_counters", "audit_logs"]) {
     assert.equal((await db.query(`select 1 from ${t} where org_id=$1`, [ctx.org.id])).length, 0, t);
   }
+});
+
+// ---- review fixes ----
+
+test("a failed Stripe handler rolls back the event record so the retry is applied", async () => {
+  process.env.STRIPE_PRICE_PRO_MONTH = "price_pro_m";
+  const a = await mkCtx("tx-a");
+  const b = await mkCtx("tx-b");
+  await db.query("update organizations set stripe_customer_id='cus_tx_a' where id=$1", [a.org.id]);
+  await db.query("update organizations set stripe_subscription_id='sub_tx' where id=$1", [b.org.id]); // makes A's update violate a unique constraint
+  const evt = { id: "evt_tx", type: "customer.subscription.updated", data: { object: { id: "sub_tx", customer: "cus_tx_a", status: "active", items: { data: [{ price: { id: "price_pro_m" } }] } } } };
+
+  await assert.rejects(() => applyStripeEvent(db, evt));
+  assert.equal((await db.query("select 1 from webhook_events where id='evt_tx'")).length, 0, "event must not be recorded when the handler failed");
+
+  await db.query("update organizations set stripe_subscription_id=null where id=$1", [b.org.id]);
+  assert.equal(await applyStripeEvent(db, evt), "applied"); // Stripe's retry now succeeds
+  const [o] = await db.query<{ plan: string }>("select plan from organizations where id=$1", [a.org.id]);
+  assert.equal(o.plan, "pro");
+});
+
+test("checkout is refused while a subscription is active", () => {
+  for (const s of ["active", "trialing", "past_due"]) assert.equal(canStartCheckout(s), false, s);
+  for (const s of [null, "canceled", "incomplete_expired"]) assert.equal(canStartCheckout(s), true, String(s));
+});
+
+test("scan detail: not kept vs nothing stood out", async () => {
+  const a = createStore(db, await mkCtx("detail1"));
+  const flagged = await a.runScan(sample, "web");
+  assert.ok(flagged.ok);
+  const id = flagged.ok ? flagged.scan.id : "";
+  assert.equal((await a.getScan(id))?.findings, null); // retention was off
+
+  await a.setRetention(true); // turning retention on later must not turn a flagged scan into "nothing stood out"
+  assert.equal((await a.getScan(id))?.findings, null);
+
+  const kept = await a.runScan(sample, "web");
+  assert.ok(kept.ok);
+  const keptId = kept.ok ? kept.scan.id : "";
+  assert.ok(((await a.getScan(keptId))?.findings ?? []).length > 0);
+  await db.query("delete from findings where scan_id=$1", [keptId]); // what the 30-day purge does
+  assert.equal((await a.getScan(keptId))?.findings, null);
+
+  const clean = await a.runScan(Array.from({ length: 40 }, (_, i) => `2026-10-13T10:00:${String(i % 60).padStart(2, "0")}Z INFO ok ${i}ms`).join("\n"), "web");
+  assert.ok(clean.ok);
+  assert.deepEqual((await a.getScan(clean.ok ? clean.scan.id : ""))?.findings, []); // a clean scan really is empty
+});
+
+test("clerk deletion events are atomic and idempotent", async () => {
+  const ctx = await mkCtx("clk1");
+  assert.equal(await applyClerkEvent(db, "svix_1", { type: "user.deleted", data: { id: ctx.member.clerkUserId } }), "applied");
+  assert.equal((await db.query("select 1 from members where id=$1", [ctx.member.id])).length, 0);
+  assert.equal(await applyClerkEvent(db, "svix_1", { type: "user.deleted", data: { id: ctx.member.clerkUserId } }), "duplicate");
+  const o = await mkCtx("clk2");
+  assert.equal(await applyClerkEvent(db, "svix_2", { type: "organization.deleted", data: { id: "clk2" } }), "applied");
+  assert.equal((await db.query("select 1 from organizations where id=$1", [o.org.id])).length, 0);
 });

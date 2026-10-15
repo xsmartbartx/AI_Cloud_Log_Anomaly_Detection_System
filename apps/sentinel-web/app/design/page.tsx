@@ -52,7 +52,7 @@ export default function DesignPage() {
           <h2 className="text-lg">Fields</h2>
           <Input label="Key name" placeholder="ci-pipeline" hint="Shown only to your team." />
           <Input label="Pattern" defaultValue="(" error="Invalid pattern." />
-          <LogArea label="Log sample" placeholder="Paste one log entry per line" hint="Up to 50,000 lines or 5 MB." />
+          <LogArea label="Log sample" placeholder="Paste one log entry per line" hint="Up to 50,000 lines or 4 MB." />
         </div>
         <div className="space-y-4">
           <h2 className="text-lg">Severity and alerts</h2>
@@ -60,7 +60,7 @@ export default function DesignPage() {
             <SeverityChip level="critical" /><SeverityChip level="high" /><SeverityChip level="medium" /><SeverityChip level="low" />
           </div>
           <Alert>Nothing is stored. Each scan uses only the sample you paste.</Alert>
-          <Alert tone="error">Sample is too large. Limit is 5 MB.</Alert>
+          <Alert tone="error">Sample is too large. Limit is 4 MB.</Alert>
           <Alert tone="success">Scan complete: 3 lines flagged.</Alert>
           <Button variant="secondary" onClick={() => setOpen(true)}>Open modal</Button>
           <Modal open={open} onClose={() => setOpen(false)} title="Create API key">

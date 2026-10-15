@@ -28,7 +28,7 @@ export default function Docs() {
       </header>
       <section className="space-y-3">
         <h2 className="text-lg">1. Web</h2>
-        <p className="text-sm">Open Lineworth, choose New scan, paste your sample or upload a text file, and run it. Limits: 50,000 lines or 5 MB per sample.</p>
+        <p className="text-sm">Open Lineworth, choose New scan, paste your sample or upload a text file, and run it. Limits: 50,000 lines or 4 MB per sample.</p>
       </section>
       <section className="space-y-3">
         <h2 className="text-lg">2. API</h2>

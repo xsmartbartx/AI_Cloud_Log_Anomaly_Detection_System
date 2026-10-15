@@ -40,7 +40,7 @@ export function ScanForm({ sample, exhausted }: { sample: string; exhausted: boo
           name="sample"
           label="Log sample"
           placeholder="Paste one log entry per line"
-          hint="Up to 50,000 lines or 5 MB. Nothing is stored unless retention is on."
+          hint="Up to 50,000 lines or 4 MB. Nothing is stored unless retention is on."
           error={state.status === "error" ? state.message : undefined}
           disabled={exhausted}
         />

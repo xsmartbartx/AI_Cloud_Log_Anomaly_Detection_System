@@ -48,7 +48,7 @@ export function createStore(db: Db, ctx: Ctx) {
 
   async function runScan(text: string, source: "web" | "api", apiKeyId: string | null = null): Promise<ScanOutcome> {
     assertCan(role, "scan");
-    if (Buffer.byteLength(text, "utf8") > LIMITS.maxBytes) return { ok: false, code: "too_large", message: "Sample is larger than 5 MB." };
+    if (Buffer.byteLength(text, "utf8") > LIMITS.maxBytes) return { ok: false, code: "too_large", message: "Sample is larger than 4 MB." };
     const org = (await db.query<R>("select plan, retain_samples from organizations where id=$1", [orgId]))[0];
     const limit = planById(org.plan).scans;
 
@@ -110,11 +110,12 @@ export function createStore(db: Db, ctx: Ctx) {
       if (!/^[0-9a-f-]{36}$/.test(id)) return null;
       const r = (await db.query<R>("select * from scans where id=$1 and org_id=$2", [id, orgId]))[0];
       if (!r) return null;
-      const org = (await db.query<R>("select retain_samples from organizations where id=$1", [orgId]))[0];
       const rows = await db.query<R>("select * from findings where scan_id=$1 and org_id=$2 order by rank", [id, orgId]);
-      const findings: Finding[] | null = rows.length || org.retain_samples
-        ? rows.map((f) => ({ rank: f.rank, lineNo: f.line_no, text: f.text, severity: f.severity, reason: f.reason, ruleId: f.rule_id, score: Number(f.score), detail: f.reason === "rule" ? "Matched a rule." : "Unusual line shape.", occurrences: 1 }))
-        : null;
+      // Decide from the scan itself, not the org's current retention setting: a scan that flagged lines but
+      // has no stored rows (retention was off, or the 30-day purge ran) was "not kept", never "nothing stood out".
+      const findings: Finding[] | null = rows.length === 0 && r.flagged_count > 0
+        ? null
+        : rows.map((f) => ({ rank: f.rank, lineNo: f.line_no, text: f.text, severity: f.severity, reason: f.reason, ruleId: f.rule_id, score: Number(f.score), detail: f.reason === "rule" ? "Matched a rule." : "Unusual line shape.", occurrences: 1 }));
       return scanFromRow(r, findings);
     },
     async listKeys(): Promise<ApiKey[]> {

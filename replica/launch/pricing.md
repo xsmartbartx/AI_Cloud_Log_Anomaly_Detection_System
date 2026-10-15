@@ -14,7 +14,7 @@ Prices change; the date above is when they were read. These are public pages, re
 ## What this says, honestly
 
 - The others bill by volume, so cost scales with how much you log. Lineworth bills by scans, so cost scales with how often you ask. That is the real difference, and the one to state.
-- **It is not "cheaper".** A scan can be up to 5 MB. At the maximum size, Scale works out to about $1.25 per GB scanned ($249 / 200 GB), well above the $0.10 per GB ingest rates above. Lineworth wins when you need to read a few samples, not stream everything. Do not publish a "cheaper than X" claim; it would be false for heavy users.
+- **It is not "cheaper".** A scan can be up to 4 MB. At the maximum size, Scale works out to about $1.56 per GB scanned ($249 / 160 GB), well above the $0.10 per GB ingest rates above. Lineworth wins when you need to read a few samples, not stream everything. Do not publish a "cheaper than X" claim; it would be false for heavy users.
 - Evidence from reviews (replica/feedback.md, thin: 1 source): 17 of 28 comments complain about log tooling cost, including surprise bills from tools with no ingestion cap, and a hard overage uplift is exactly what two of the above sell. Lineworth's answer is a hard cap.
 
 ## Model and tiers

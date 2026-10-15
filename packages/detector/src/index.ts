@@ -22,7 +22,7 @@ export type ScanResult = {
   durationMs: number;
 };
 
-export const LIMITS = { maxLines: 50_000, maxBytes: 5 * 1024 * 1024, topN: 10, maxLineChars: 2_000 } as const;
+export const LIMITS = { maxLines: 50_000, maxBytes: 4 * 1024 * 1024, topN: 10, maxLineChars: 2_000 } as const;
 
 export class InputError extends Error {
   code: "empty" | "too_large" | "too_many_lines";
@@ -94,7 +94,7 @@ export function detect(input: string, opts: DetectOptions = {}): ScanResult {
   const now = opts.now ?? Date.now;
   const t0 = now();
   const byteCount = new TextEncoder().encode(input).length;
-  if (byteCount > LIMITS.maxBytes) throw new InputError("too_large", "Sample is larger than 5 MB.");
+  if (byteCount > LIMITS.maxBytes) throw new InputError("too_large", "Sample is larger than 4 MB.");
 
   const rawLines = input.split(/\r?\n/);
   const lines: Array<{ no: number; text: string }> = [];

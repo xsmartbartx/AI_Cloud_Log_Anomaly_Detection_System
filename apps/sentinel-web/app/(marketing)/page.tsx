@@ -32,7 +32,7 @@ const faq = [
   ["Is this a log platform?", "No. Lineworth does not collect logs or run dashboards. You bring a sample, it tells you where to look. Use it next to your existing tools, not instead of them."],
   ["What happens at my limit?", "Scans pause until next month or until you upgrade. We never bill for going over."],
   ["Do you keep my logs?", "Not by default. Each scan uses only the sample you send. If you turn on retention, only the flagged lines are kept, with secrets masked, for 30 days."],
-  ["How big can a sample be?", "Up to 50,000 lines or 5 MB per scan."],
+  ["How big can a sample be?", "Up to 50,000 lines or 4 MB per scan."],
   ["Is the result the same every time?", "Yes. The analysis is deterministic. The same sample gives the same ten lines."],
 ];
 

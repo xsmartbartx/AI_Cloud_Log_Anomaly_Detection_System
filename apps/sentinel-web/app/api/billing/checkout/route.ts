@@ -3,7 +3,7 @@ import { z } from "zod";
 import { requireCtx } from "@/lib/auth";
 import { assertCan, ForbiddenError } from "@/lib/authz";
 import { getDb } from "@/lib/db";
-import { priceFor, stripe, stripeEnabled } from "@/lib/billing";
+import { canStartCheckout, priceFor, stripe, stripeEnabled } from "@/lib/billing";
 import { rateLimit } from "@/lib/ratelimit";
 
 const body = z.object({ plan: z.enum(["starter", "pro", "business", "scale"]), interval: z.enum(["month", "year"]) });
@@ -18,6 +18,9 @@ export async function POST(req: Request) {
   if (!rateLimit(`checkout:${ctx.org.id}`, 10, 60_000).ok) return NextResponse.json({ error: "rate_limited" }, { status: 429 });
   const parsed = body.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "bad_request", message: "Choose a plan and interval." }, { status: 400 });
+  if (!canStartCheckout(ctx.org.subscriptionStatus)) {
+    return NextResponse.json({ error: "already_subscribed", message: "You already have a subscription. Use Manage billing to change or cancel it." }, { status: 409 });
+  }
   const { plan, interval } = parsed.data;
   const price = priceFor(plan, interval);
   if (!price) return NextResponse.json({ error: "billing_unavailable", message: "That plan is not available yet." }, { status: 503 });

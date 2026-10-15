@@ -21,7 +21,7 @@ export async function runScanAction(_prev: ScanState, form: FormData): Promise<S
   let text = String(form.get("sample") ?? "");
   const file = form.get("file");
   if (file instanceof File && file.size > 0) {
-    if (file.size > LIMITS.maxBytes) return { status: "error", code: "too_large", message: "File is larger than 5 MB." };
+    if (file.size > LIMITS.maxBytes) return { status: "error", code: "too_large", message: "File is larger than 4 MB." };
     text = await file.text();
   }
   try {

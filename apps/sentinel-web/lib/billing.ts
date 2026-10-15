@@ -22,39 +22,45 @@ export function planFromPrice(priceId: string | undefined): { plan: PlanId; inte
   return null;
 }
 
+/** A checkout would create a second subscription if one is already live. Plan changes go through the portal. */
+export const canStartCheckout = (status: string | null) => !["active", "trialing", "past_due"].includes(status ?? "");
+
 /**
- * Idempotent: the provider event id is inserted first; a replay inserts nothing and is skipped.
+ * Idempotent and atomic: the provider event id and the state change commit together. If the handler
+ * fails, the id is rolled back, so Stripe's retry is applied instead of being skipped as a duplicate.
  * Subscription state lives in our DB, set only from verified events, never from the client.
  */
 export async function applyStripeEvent(db: Db, event: { id: string; type: string; data: { object: any } }): Promise<"applied" | "duplicate" | "ignored"> { // eslint-disable-line @typescript-eslint/no-explicit-any
-  const fresh = await db.query("insert into webhook_events (id, provider) values ($1,'stripe') on conflict do nothing returning id", [event.id]);
-  if (fresh.length === 0) return "duplicate";
-  const o = event.data.object;
-  switch (event.type) {
-    case "checkout.session.completed": {
-      const orgId = o.client_reference_id as string | undefined;
-      if (orgId && o.customer) {
-        await db.query("update organizations set stripe_customer_id=$2, stripe_subscription_id=coalesce($3, stripe_subscription_id), updated_at=now() where id=$1", [orgId, o.customer, o.subscription ?? null]);
+  return db.tx(async (q) => {
+    const fresh = await q("insert into webhook_events (id, provider) values ($1,'stripe') on conflict do nothing returning id", [event.id]);
+    if (fresh.length === 0) return "duplicate";
+    const o = event.data.object;
+    switch (event.type) {
+      case "checkout.session.completed": {
+        const orgId = o.client_reference_id as string | undefined;
+        if (orgId && o.customer) {
+          await q("update organizations set stripe_customer_id=$2, stripe_subscription_id=coalesce($3, stripe_subscription_id), updated_at=now() where id=$1", [orgId, o.customer, o.subscription ?? null]);
+        }
+        return "applied";
       }
-      return "applied";
+      case "customer.subscription.created":
+      case "customer.subscription.updated": {
+        const hit = planFromPrice(o.items?.data?.[0]?.price?.id);
+        if (!hit) return "ignored";
+        const active = ["active", "trialing", "past_due"].includes(o.status);
+        await q(
+          `update organizations set plan=$2, billing_interval=$3, subscription_status=$4, stripe_subscription_id=$5, updated_at=now() where stripe_customer_id=$1`,
+          [o.customer, active ? hit.plan : "free", hit.interval, o.status, o.id]);
+        return "applied";
+      }
+      case "customer.subscription.deleted":
+        await q("update organizations set plan='free', billing_interval='month', subscription_status='canceled', updated_at=now() where stripe_customer_id=$1", [o.customer]);
+        return "applied";
+      case "invoice.payment_failed":
+        await q("update organizations set subscription_status='past_due', updated_at=now() where stripe_customer_id=$1", [o.customer]);
+        return "applied";
+      default:
+        return "ignored";
     }
-    case "customer.subscription.created":
-    case "customer.subscription.updated": {
-      const hit = planFromPrice(o.items?.data?.[0]?.price?.id);
-      if (!hit) return "ignored";
-      const active = ["active", "trialing", "past_due"].includes(o.status);
-      await db.query(
-        `update organizations set plan=$2, billing_interval=$3, subscription_status=$4, stripe_subscription_id=$5, updated_at=now() where stripe_customer_id=$1`,
-        [o.customer, active ? hit.plan : "free", hit.interval, o.status, o.id]);
-      return "applied";
-    }
-    case "customer.subscription.deleted":
-      await db.query("update organizations set plan='free', billing_interval='month', subscription_status='canceled', updated_at=now() where stripe_customer_id=$1", [o.customer]);
-      return "applied";
-    case "invoice.payment_failed":
-      await db.query("update organizations set subscription_status='past_due', updated_at=now() where stripe_customer_id=$1", [o.customer]);
-      return "applied";
-    default:
-      return "ignored";
-  }
+  });
 }
