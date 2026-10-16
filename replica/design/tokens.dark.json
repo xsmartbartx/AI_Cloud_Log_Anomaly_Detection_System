@@ -1,0 +1,182 @@
+{
+  "_about": "Sentinel dark tokens. Same roles.",
+  "color": {
+    "bg": "#101318",
+    "bg-canvas": "#0a0c10",
+    "surface": "#171b21",
+    "border": "#2b313a",
+    "border-input": "#8b95a3",
+    "text": "#eef0f3",
+    "text-muted": "#a3acb8",
+    "accent": "#3fb8b0",
+    "accent-hover": "#5cc8c1",
+    "on-accent": "#06201e",
+    "danger": "#ff8a8a",
+    "success": "#5fd394",
+    "warning": "#e8b04a",
+    "sev-critical": "#ff9a9a",
+    "sev-critical-bg": "#3a1717",
+    "sev-high": "#ffb27a",
+    "sev-high-bg": "#3a2412",
+    "sev-medium": "#e8c75a",
+    "sev-medium-bg": "#36300f",
+    "sev-low": "#9db8e8",
+    "sev-low-bg": "#1a2438"
+  },
+  "pairs": [
+    [
+      "text",
+      "bg"
+    ],
+    [
+      "text",
+      "bg-canvas"
+    ],
+    [
+      "text",
+      "surface"
+    ],
+    [
+      "text-muted",
+      "bg"
+    ],
+    [
+      "text-muted",
+      "bg-canvas"
+    ],
+    [
+      "text-muted",
+      "surface"
+    ],
+    [
+      "on-accent",
+      "accent"
+    ],
+    [
+      "on-accent",
+      "accent-hover"
+    ],
+    [
+      "accent",
+      "bg"
+    ],
+    [
+      "accent",
+      "bg-canvas"
+    ],
+    [
+      "danger",
+      "bg"
+    ],
+    [
+      "success",
+      "bg"
+    ],
+    [
+      "warning",
+      "bg"
+    ],
+    [
+      "sev-critical",
+      "sev-critical-bg"
+    ],
+    [
+      "sev-high",
+      "sev-high-bg"
+    ],
+    [
+      "sev-medium",
+      "sev-medium-bg"
+    ],
+    [
+      "sev-low",
+      "sev-low-bg"
+    ],
+    [
+      "border-input",
+      "bg",
+      "ui"
+    ],
+    [
+      "accent",
+      "bg",
+      "ui"
+    ]
+  ],
+  "font": {
+    "sans": "Inter, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
+    "mono": "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace"
+  },
+  "type": {
+    "xs": {
+      "size": 12,
+      "line": 16,
+      "weight": 500
+    },
+    "sm": {
+      "size": 14,
+      "line": 20,
+      "weight": 400
+    },
+    "base": {
+      "size": 16,
+      "line": 24,
+      "weight": 400
+    },
+    "lg": {
+      "size": 20,
+      "line": 28,
+      "weight": 600
+    },
+    "xl": {
+      "size": 28,
+      "line": 34,
+      "weight": 650
+    },
+    "2xl": {
+      "size": 40,
+      "line": 44,
+      "weight": 650
+    },
+    "display": {
+      "size": 64,
+      "line": 66,
+      "weight": 700
+    }
+  },
+  "space": [
+    0,
+    4,
+    8,
+    12,
+    16,
+    24,
+    32,
+    48,
+    64,
+    96
+  ],
+  "radius": {
+    "sm": 4,
+    "md": 8,
+    "lg": 14,
+    "pill": 999
+  },
+  "shadow": {
+    "card": "0 1px 2px rgba(16,24,40,.05), 0 1px 3px rgba(16,24,40,.08)",
+    "pop": "0 12px 32px rgba(16,24,40,.16)"
+  },
+  "layout": {
+    "content-max": 1120,
+    "app-max": 1440,
+    "rail": 240,
+    "rail-collapsed": 56,
+    "header": 48,
+    "marketing-header": 52
+  },
+  "motion": {
+    "fast": "120ms",
+    "base": "200ms",
+    "ease": "cubic-bezier(.2,.8,.2,1)"
+  }
+}

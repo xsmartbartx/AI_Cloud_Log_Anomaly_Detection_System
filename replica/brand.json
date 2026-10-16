@@ -1,0 +1,27 @@
+{
+  "avoid": [
+    "Microsoft",
+    "Azure",
+    "Microsoft Sentinel",
+    "Azure Sentinel",
+    "SentinelOne",
+    "Cupertino"
+  ],
+  "domains": [
+    "microsoft.com",
+    "azure.com",
+    "azure.microsoft.com",
+    "sentinelone.com",
+    "apple.com"
+  ],
+  "colors": [
+    "#0078d4",
+    "#106ebe",
+    "#0071e3",
+    "#0066cc",
+    "#6c47ff",
+    "#5c2d91"
+  ],
+  "name": "Lineworth",
+  "formerName": "Sentinel (conflicts with Microsoft Sentinel)"
+}

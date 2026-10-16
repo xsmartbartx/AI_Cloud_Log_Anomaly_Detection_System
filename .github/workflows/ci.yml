@@ -1,0 +1,97 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Unit tests, typecheck, build, audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Detector tests
+        run: npm test -w @anomaly/detector
+      - name: App unit tests
+        run: npm test -w @anomaly/sentinel-web
+      - name: Production build (also type-checks)
+        run: npm run build -w @anomaly/sentinel-web
+      - name: Typecheck
+        run: npm run typecheck -w @anomaly/sentinel-web
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=high
+
+  e2e:
+    name: End-to-end (Playwright, Chrome)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Install Chrome
+        run: npx playwright install --with-deps chrome
+        working-directory: apps/sentinel-web
+      - name: Run Playwright
+        run: npx playwright test
+        working-directory: apps/sentinel-web
+        env:
+          CI: "true"
+      - name: Upload report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-results
+          path: |
+            apps/sentinel-web/test-results
+            apps/sentinel-web/playwright-report
+          retention-days: 7
+
+  e2e-prod:
+    name: Production build smoke (next start + Postgres)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: lineworth
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/lineworth
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Apply migrations
+        run: npm run db:migrate -w @anomaly/sentinel-web
+      - name: Smoke test the production build
+        run: npm run test:e2e:prod
+        working-directory: apps/sentinel-web

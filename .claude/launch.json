@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "sentinel-web",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "-w",
+        "@anomaly/sentinel-web"
+      ],
+      "port": 3000,
+      "autoPort": true
+    }
+  ]
+}
