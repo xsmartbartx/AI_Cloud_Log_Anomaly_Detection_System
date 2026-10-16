@@ -2,7 +2,7 @@ import { ScanForm } from "@/components/app/scan-form";
 import { store } from "@/lib/store";
 import { sampleLog } from "@/lib/sample";
 
-export const metadata = { title: "New scan · Lineworth" };
+export const metadata = { title: "New scan · Linegist" };
 
 export default async function NewScan() {
   const u = await (await store()).usage();

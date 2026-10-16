@@ -9,7 +9,7 @@ import { requireCtx } from "@/lib/auth";
 import { can } from "@/lib/authz";
 import { deleteRuleAction, toggleRuleAction } from "@/lib/actions";
 
-export const metadata = { title: "Rules · Lineworth" };
+export const metadata = { title: "Rules · Linegist" };
 
 export default async function Rules() {
   const [{ member }, custom] = await Promise.all([requireCtx(), store().then((s) => s.listRules())]);

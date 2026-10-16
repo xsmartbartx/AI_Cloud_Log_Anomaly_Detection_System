@@ -29,7 +29,7 @@ const features = [
 ];
 
 const faq = [
-  ["Is this a log platform?", "No. Lineworth does not collect logs or run dashboards. You bring a sample, it tells you where to look. Use it next to your existing tools, not instead of them."],
+  ["Is this a log platform?", "No. Linegist does not collect logs or run dashboards. You bring a sample, it tells you where to look. Use it next to your existing tools, not instead of them."],
   ["What happens at my limit?", "Scans pause until next month or until you upgrade. We never bill for going over."],
   ["Do you keep my logs?", "Not by default. Each scan uses only the sample you send. If you turn on retention, only the flagged lines are kept, with secrets masked, for 30 days."],
   ["How big can a sample be?", "Up to 50,000 lines or 4 MB per scan."],
@@ -40,7 +40,7 @@ export default function Landing() {
   return (
     <>
       <section className="mx-auto max-w-content px-4 pb-16 pt-20 text-center sm:px-6 sm:pt-28">
-        <p className="text-sm font-medium text-accent">Lineworth · Beta</p>
+        <p className="text-sm font-medium text-accent">Linegist · Beta</p>
         <h1 className="mx-auto mt-3 max-w-3xl text-[44px] font-bold leading-[1.05] tracking-tight sm:text-display">
           The ten lines worth reading.
         </h1>
@@ -48,7 +48,7 @@ export default function Landing() {
           Paste a log sample and get the lines that matter, with the reason for each. Flat price per scan. A hard cap instead of an overage bill. Nothing stored by default.
         </p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
-          <Link href="/go" className="inline-flex h-12 items-center rounded-md bg-accent px-6 font-semibold text-on-accent hover:bg-accent-hover">Open Lineworth</Link>
+          <Link href="/go" className="inline-flex h-12 items-center rounded-md bg-accent px-6 font-semibold text-on-accent hover:bg-accent-hover">Open Linegist</Link>
           <Link href="/docs" className="inline-flex h-12 items-center rounded-md border border-border-input px-6 font-semibold hover:bg-canvas">Read the docs</Link>
         </div>
 
@@ -149,7 +149,7 @@ export default function Landing() {
           <h2 className="text-xl">Try it on a real log</h2>
           <p className="mt-2 text-sm text-muted">The free plan includes 20 scans a month.</p>
           <div className="mt-6 flex justify-center gap-3">
-            <Link href="/go" className="inline-flex h-10 items-center rounded-md bg-accent px-4 text-sm font-semibold text-on-accent hover:bg-accent-hover">Open Lineworth</Link>
+            <Link href="/go" className="inline-flex h-10 items-center rounded-md bg-accent px-4 text-sm font-semibold text-on-accent hover:bg-accent-hover">Open Linegist</Link>
             <Link href="/docs" className="inline-flex h-10 items-center rounded-md border border-border-input px-4 text-sm font-semibold hover:bg-canvas">Read the docs</Link>
           </div>
         </div>

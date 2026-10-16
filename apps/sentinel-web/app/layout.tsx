@@ -4,8 +4,8 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.APP_URL ?? "http://localhost:3000"),
-  title: "Lineworth",
-  openGraph: { title: "Lineworth", siteName: "Lineworth", type: "website" },
+  title: "Linegist",
+  openGraph: { title: "Linegist", siteName: "Linegist", type: "website" },
   twitter: { card: "summary_large_image" },
   description: "Paste a log sample and get the ten lines worth reading, with a reason for each. Flat price per scan, no overage bills.",
 };

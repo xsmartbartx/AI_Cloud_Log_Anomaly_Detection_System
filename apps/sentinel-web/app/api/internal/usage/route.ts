@@ -23,5 +23,5 @@ export async function GET(req: Request) {
   const [o] = await db.query<{ id: string; plan: string }>("select id, plan from organizations where clerk_org_id=$1", [org]);
   if (!o) return NextResponse.json({ error: "not_found" }, { status: 404 });
   const [u] = await db.query<{ scans_used: number }>("select scans_used from usage_counters where org_id=$1 and period=$2", [o.id, period]);
-  return NextResponse.json({ product: "lineworth", period, plan: o.plan, scansUsed: u?.scans_used ?? 0, scansLimit: planById(o.plan as never).scans });
+  return NextResponse.json({ product: "linegist", period, plan: o.plan, scansUsed: u?.scans_used ?? 0, scansLimit: planById(o.plan as never).scans });
 }

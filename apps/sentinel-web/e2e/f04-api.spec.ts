@@ -6,7 +6,7 @@ test.describe("F04 developer scans via API", () => {
     await page.goto("/app/keys");
     await page.getByLabel("Key name").fill("e2e");
     await page.getByRole("button", { name: "Create key" }).click();
-    const secret = (await page.locator("code", { hasText: /^lwk_/ }).innerText()).trim();
+    const secret = (await page.locator("code", { hasText: /^lgk_/ }).innerText()).trim();
 
     const ok = await request.post("/api/v1/scans", { headers: { authorization: `Bearer ${secret}` }, data: { text: LOG } });
     expect(ok.status()).toBe(200);

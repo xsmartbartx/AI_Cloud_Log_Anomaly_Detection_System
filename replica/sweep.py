@@ -29,7 +29,7 @@ import os
 import re
 import sys
 
-SKIP_DIRS = {".git", "node_modules", ".next", ".nuxt", ".svelte-kit", "dist", "build",
+SKIP_DIRS = {".git", "node_modules", ".next", ".next-member", ".data", "test-results", "playwright-report", ".nuxt", ".svelte-kit", "dist", "build",
              "out", ".vercel", ".turbo", ".cache", "coverage", "__pycache__", ".venv",
              "venv", "Pods", ".expo", "DerivedData", ".gradle"}
 SKIP_FILES = {"package-lock.json", "yarn.lock", "pnpm-lock.yaml", "bun.lockb",
