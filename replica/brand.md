@@ -4,7 +4,7 @@ Date: 2026-10-14. Angle (replica/fixes.md): "paid by the scan, flat price, hard 
 
 ## Decision (2026-10-14): renamed to Lineworth
 
-The code, copy, API key prefix (`lwk_`), Console product id (`lineworth`) and docs host (`lineworth.onenexora.com`) now say Lineworth. Internal names stay (`apps/sentinel-web`, `@anomaly/sentinel-web`) to avoid churn; rename the folder when convenient. Trademark searches for Lineworth are still **to run**.
+The code, copy, API key prefix (`lwk_`), Console product id (`lineworth`) and docs host (`lineworth.onenexora.com`) now say Lineworth. Internal names stay (`apps/sentinel-web`, `@anomaly/sentinel-web`) to avoid churn; rename the folder when convenient. USPTO and WIPO exact searches for Lineworth are done (no match); near-matches are listed below.
 
 ## Why: the name "Sentinel" is a risk
 
@@ -27,6 +27,22 @@ Generated 20: Skimlog, Tenlog, Tenline, Logbrief, Lineworth, Readworthy, Trimlog
 Domain results are from DNS and whois lookups on 2026-10-14. "No DNS" means no records, not proof the domain is free; confirm at a registrar. Nothing was bought or registered. The product does not need its own domain to launch: it lives at `sentinel.onenexora.com` (or `<name>.onenexora.com`) under NEXORA.
 
 **Recommendation: Lineworth.** It says what the product does, is short, spells itself after one hearing, matches NEXORA's tagline, and has the cleanest domain picture. Runner-up: Tenlog. If you keep "Sentinel", at least run the trademark searches first and get a lawyer's view on Microsoft Sentinel.
+
+### Trademark screening for "Lineworth" (run 2026-10-16, by hand in the browser)
+
+Screening only, not legal clearance. Exact and near-exact word searches; no phonetic or logo search.
+
+| office | search | result |
+| --- | --- | --- |
+| USPTO (tmsearch.uspto.gov), wordmark "lineworth" | exact | **No results** (0 live, 0 dead) |
+| USPTO, "lineworks" | near | 5 results. **LINEWORKS, live, registered, class 9: "computer software for the automation, tracking, and monitoring..." (Camline GmbH, Germany, serial 75703263)**; LINEWORKS SPACE, class 9, same owner (75703092). Others are unrelated classes (cosmetics, construction) or dead |
+| USPTO, "line works" | near | 23,663 loose results. **LINE WORKS, live, registered, classes 9, 38, 42: downloadable mobile app for social networking... (LY Corporation, Japan, serial 87347614)** |
+| WIPO Global Brand Database (89 data sources), brand name contains "lineworth" | exact | **No results** |
+| EUIPO eSearch, Canada (CIPO) | direct | **not run**; WIPO's database covers many offices but I did not confirm EU coverage |
+
+What this means: nobody holds "Lineworth" itself, which is good. The two nearest live marks, LINEWORKS (Camline, class 9 software for automation, tracking and monitoring) and LINE WORKS (LY Corporation, classes 9/38/42 collaboration apps), differ by two letters ("works" against "worth") and sit in software classes close to ours. They sound alike to some ears. Whether that is "confusingly similar" is a legal judgement and the main thing to put in front of a trademark lawyer. If it looks risky, the runner-up Tenlog (no US/WIPO search done yet) or a fresh name is cheaper to switch to now.
+
+Also still to run: App Store and Play search, handles (X, Instagram, TikTok, GitHub), a web search for "lineworth" plus "log", and the registrar check for the domains.
 
 ### To rename later (one command, after you choose)
 ```bash

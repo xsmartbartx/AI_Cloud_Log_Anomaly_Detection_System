@@ -16,7 +16,7 @@ Date: 2026-10-14. **Verdict: NO-GO.** Preflight was run locally. Nothing was dep
 | `npm audit --omit=dev` | pass: 0 vulnerabilities after upgrading to Next 16.4.0 (2026-10-14); 25 of 25 e2e and 10 of 10 store tests re-run green on it; `middleware.ts` migrated to `proxy.ts` |
 | Production fails closed | pass: `NODE_ENV=production` without Clerk or database returns 500 on `/app`, not the demo user |
 | `/design` showcase hidden in production | fixed in this run (404 in prod); `robots.txt` added (blocks /app, /api, /go, /sign-in) |
-| Trademark screening for "Lineworth" | **NOT RUN** |
+| Trademark screening for "Lineworth" | **PARTIAL** (2026-10-16): no exact match at USPTO or WIPO; near marks LINEWORKS (class 9 software) and LINE WORKS (classes 9/38/42) found. EUIPO, Canada not run; lawyer review still needed |
 | Privacy policy and terms pages | **FAIL**: NEXORA's pages are marked as an unreviewed draft; the policy must list Clerk, Stripe, the host, the database and any analytics/error tracker |
 | Cookie banner | none built. Only essential cookies (Clerk session) today; add a banner if analytics with non-essential cookies are used in EU/UK |
 | Account deletion | coded via Clerk webhook (user.deleted, organization.deleted); **untested against Clerk** |
