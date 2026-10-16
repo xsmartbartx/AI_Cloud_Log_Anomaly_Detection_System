@@ -49,6 +49,29 @@ Screening only, not legal clearance. Exact and near-exact word searches; no phon
 
 Tenlog is not blocked in software classes (9, 42), but it is an active brand in another field (3D printers), so a web search will mostly return that company, which would make it harder to find. It is a weaker choice than it looked: a real third party uses the exact word. Lineworth has no exact-word owner but has the two near marks above.
 
+### Remaining checks and a new candidate, "Linegist" (run 2026-10-16 in Chrome, read-only)
+
+An EUIPO result from the first attempt was discarded: a hash-URL search returned 0 even for "microsoft", so it had not run. Redone through the real search box and validated ("microsoft" returned 97 trade marks).
+
+| check | Lineworth | Linegist |
+| --- | --- | --- |
+| USPTO exact | none | **none** |
+| EUIPO eSearch exact | **none** (also none for "lineworks") | **none** |
+| WIPO Global Brand Database exact | none | **none** |
+| Canada (CIPO) | not run | not run |
+| Domains (DNS + whois) | .com parked at a broker, .io/.dev/.app no records | **.com, .io, .dev, .app all no records** (.com "no match", .io "not found") |
+| GitHub | free (404) | **free (404)** |
+| X | **taken** (@LineWorth, inactive personal account since 2021) | **free** (404) |
+| Instagram | **taken** (private personal account) | **free** ("profile not available") |
+| TikTok | **taken** (private personal account) | **free** ("account not found") |
+| Google Play search | no app by that name | no app by that name |
+| Apple App Store search | no app by that name | no app by that name |
+| Web search | no company; a fictional place and a typo of "Linworth" | no match; search engine suggested "Lingvist" |
+
+Linegist is the cleaner option: no exact or near hit at the three trademark offices, all four domains and four of four handles free. Caveats: it is one letter from "Lingvist", a language-learning brand (different goods, but worth a lawyer's view), and "gist" is a common word (GitHub Gist, GIST in medicine), so it is less distinctive. It also still needs a Canadian search and a lawyer.
+
+**Updated recommendation:** Linegist, if the name feels right to you; otherwise Lineworth with the LINEWORKS and LINE WORKS risk above. A rename would be the same one-line sed.
+
 What this means: nobody holds "Lineworth" itself, which is good. The two nearest live marks, LINEWORKS (Camline, class 9 software for automation, tracking and monitoring) and LINE WORKS (LY Corporation, classes 9/38/42 collaboration apps), differ by two letters ("works" against "worth") and sit in software classes close to ours. They sound alike to some ears. Whether that is "confusingly similar" is a legal judgement and the main thing to put in front of a trademark lawyer. If it looks risky, the runner-up Tenlog (no US/WIPO search done yet) or a fresh name is cheaper to switch to now.
 
 Also still to run: App Store and Play search, handles (X, Instagram, TikTok, GitHub), a web search for "lineworth" plus "log", and the registrar check for the domains.
