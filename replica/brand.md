@@ -40,6 +40,15 @@ Screening only, not legal clearance. Exact and near-exact word searches; no phon
 | WIPO Global Brand Database (89 data sources), brand name contains "lineworth" | exact | **No results** |
 | EUIPO eSearch, Canada (CIPO) | direct | **not run**; WIPO's database covers many offices but I did not confirm EU coverage |
 
+### Fallback "Tenlog" (searched 2026-10-16)
+
+| office | search | result |
+| --- | --- | --- |
+| USPTO, wordmark "tenlog" | exact | 3 results, all **class 7 (3D printers and machinery)**: TL TENLOG (97233340, live, registered), TENLOG TL (97422363, live, registered), TL TENLOG (90247125, dead, abandoned). Owner: Shenzhen Tenlog/Tenglong 3D Technology Co., China |
+| WIPO Global Brand Database, brand name contains "tenlog" | exact | the same 3 US records, nothing from other offices |
+
+Tenlog is not blocked in software classes (9, 42), but it is an active brand in another field (3D printers), so a web search will mostly return that company, which would make it harder to find. It is a weaker choice than it looked: a real third party uses the exact word. Lineworth has no exact-word owner but has the two near marks above.
+
 What this means: nobody holds "Lineworth" itself, which is good. The two nearest live marks, LINEWORKS (Camline, class 9 software for automation, tracking and monitoring) and LINE WORKS (LY Corporation, classes 9/38/42 collaboration apps), differ by two letters ("works" against "worth") and sit in software classes close to ours. They sound alike to some ears. Whether that is "confusingly similar" is a legal judgement and the main thing to put in front of a trademark lawyer. If it looks risky, the runner-up Tenlog (no US/WIPO search done yet) or a fresh name is cheaper to switch to now.
 
 Also still to run: App Store and Play search, handles (X, Instagram, TikTok, GitHub), a web search for "lineworth" plus "log", and the registrar check for the domains.
