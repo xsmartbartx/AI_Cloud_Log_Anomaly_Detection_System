@@ -124,7 +124,7 @@ export function createStore(db: Db, ctx: Ctx) {
     },
     async createKey(name: string) {
       assertCan(role, "keys:write");
-      const secret = `lwk_${randomBytes(24).toString("base64url")}`;
+      const secret = `lgk_${randomBytes(24).toString("base64url")}`;
       await db.query("insert into api_keys (org_id, created_by, name, prefix, key_hash) values ($1,$2,$3,$4,$5)", [orgId, ctx.member.id, name, secret.slice(0, 8), sha256(secret)]);
       await audit("key.create", "api_key", null, { name });
       return { secret };

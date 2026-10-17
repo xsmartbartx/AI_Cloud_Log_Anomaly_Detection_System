@@ -28,7 +28,7 @@ export default function DesignPage() {
       <header className="flex items-end justify-between">
         <div>
           <p className="text-xs uppercase tracking-wide text-muted">Design system</p>
-          <h1 className="text-2xl">Lineworth primitives</h1>
+          <h1 className="text-2xl">Linegist primitives</h1>
         </div>
         <Button variant="secondary" onClick={toggle}>Theme: {theme}</Button>
       </header>

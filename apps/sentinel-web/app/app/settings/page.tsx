@@ -6,7 +6,7 @@ import { requireCtx } from "@/lib/auth";
 import { can } from "@/lib/authz";
 import { retentionAction } from "@/lib/actions";
 
-export const metadata = { title: "Settings · Lineworth" };
+export const metadata = { title: "Settings · Linegist" };
 
 export default async function Settings() {
   const [{ org, member }, members] = await Promise.all([requireCtx(), store().then((s) => s.listMembers())]);

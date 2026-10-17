@@ -18,7 +18,7 @@ export default async function ScanDetail({ params }: { params: Promise<{ id: str
       {scan.findings === null ? (
         <EmptyState
           title="Findings were not kept"
-          body="Lineworth does not store log text by default, so only counts are saved. Turn on retention to keep findings for new scans."
+          body="Linegist does not store log text by default, so only counts are saved. Turn on retention to keep findings for new scans."
           action={<Link className="text-sm text-accent underline" href="/app/settings">Open Settings</Link>}
         />
       ) : scan.findings.length === 0 ? (

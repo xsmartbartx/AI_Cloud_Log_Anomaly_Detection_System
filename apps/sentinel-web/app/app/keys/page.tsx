@@ -8,7 +8,7 @@ import { requireCtx } from "@/lib/auth";
 import { can } from "@/lib/authz";
 import { revokeKeyAction } from "@/lib/actions";
 
-export const metadata = { title: "API keys · Lineworth" };
+export const metadata = { title: "API keys · Linegist" };
 
 export default async function Keys() {
   const [{ member }, keys] = await Promise.all([requireCtx(), store().then((s) => s.listKeys())]);

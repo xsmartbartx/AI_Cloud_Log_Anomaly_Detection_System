@@ -25,7 +25,7 @@ export function AppShell({ org, user, children }: { org: string; user: string; c
     <div className="min-h-screen bg-canvas">
       <header className="sticky top-0 z-20 flex h-12 items-center justify-between border-b border-border bg-bg px-4">
         <Link href="/app" className="flex items-center gap-2 text-sm font-semibold">
-          <AlignLeft className="size-4 text-accent" aria-hidden /> Lineworth
+          <AlignLeft className="size-4 text-accent" aria-hidden /> Linegist
         </Link>
         <div className="flex items-center gap-3 text-xs text-muted">
           <span className="hidden sm:inline">{org}</span>
@@ -51,7 +51,7 @@ export function AppShell({ org, user, children }: { org: string; user: string; c
         </nav>
         <main id="main" className="min-w-0 flex-1 p-4 sm:p-8">
           <nav aria-label="Breadcrumb" className="mb-4 text-xs text-muted">
-            <Link href="/app" className="hover:text-text">Lineworth</Link>
+            <Link href="/app" className="hover:text-text">Linegist</Link>
             {crumb && crumb.href !== "/app" && <> / <span className="text-text">{TITLES[crumb.href]}</span></>}
           </nav>
           {children}

@@ -4,7 +4,7 @@ import { Pool } from "pg";
 
 const url = process.env.DATABASE_URL;
 const sha = (s: string) => createHash("sha256").update(s).digest("hex");
-const KEY = `lwk_prodsmoke_${Date.now()}`;
+const KEY = `lgk_prodsmoke_${Date.now()}`;
 const LOG = [
   ...Array.from({ length: 60 }, (_, i) => `2026-10-13T09:00:${String(i % 60).padStart(2, "0")}Z INFO api GET /v1/items 200 ${20 + (i % 9)}ms`),
   "2026-10-13T09:01:52Z FATAL worker out of memory, killed process 8841",

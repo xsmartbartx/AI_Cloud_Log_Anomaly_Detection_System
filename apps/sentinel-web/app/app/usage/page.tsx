@@ -3,7 +3,7 @@ import { PricingTable } from "@/components/marketing/pricing-table";
 import { store } from "@/lib/store";
 import { PortalButton } from "@/components/app/portal-button";
 
-export const metadata = { title: "Usage and plan · Lineworth" };
+export const metadata = { title: "Usage and plan · Linegist" };
 
 export default async function Usage() {
   const u = await (await store()).usage();

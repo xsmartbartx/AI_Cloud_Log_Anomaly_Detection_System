@@ -22,6 +22,10 @@
     "#6c47ff",
     "#5c2d91"
   ],
-  "name": "Lineworth",
-  "formerName": "Sentinel (conflicts with Microsoft Sentinel)"
+  "name": "Linegist",
+  "formerName": "Sentinel (conflicts with Microsoft Sentinel)",
+  "formerNames": [
+    "Sentinel (conflicts with Microsoft Sentinel)",
+    "Lineworth (near marks LINEWORKS, LINE WORKS)"
+  ]
 }
