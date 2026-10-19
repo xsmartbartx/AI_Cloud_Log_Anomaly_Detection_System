@@ -27,7 +27,10 @@ async function main() {
       console.log(`INFO  env files in ${d === process.cwd() ? "apps/sentinel-web" : "repo root"}: ${found.join(", ") || "none"}`);
     }
     const names = Object.keys(process.env).filter((k) => k.startsWith("STRIPE_")).sort();
-    console.log(`INFO  STRIPE_* variables the app can see: ${names.join(", ") || "none"}`);
+    const filled = names.filter((k) => (process.env[k] ?? "").trim() !== "");
+    const blank = names.filter((k) => (process.env[k] ?? "").trim() === "");
+    console.log(`INFO  STRIPE_* variables with a value: ${filled.join(", ") || "none"}`);
+    console.log(`INFO  STRIPE_* variables present but EMPTY (nothing after the =): ${blank.join(", ") || "none"}`);
     console.log("INFO  Next only loads apps/sentinel-web/.env.local (not the repo root). Put the keys there, or export them in this shell.");
     return fail("STRIPE_SECRET_KEY is not set");
   }
