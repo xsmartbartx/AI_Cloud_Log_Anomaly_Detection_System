@@ -13,7 +13,7 @@ import { ResultActions } from "./result-actions";
 
 const idle: ScanState = { status: "idle" };
 
-export function ScanForm({ sample, exhausted }: { sample: string; exhausted: boolean }) {
+export function ScanForm({ sample, exhausted, canIgnore = false }: { sample: string; exhausted: boolean; canIgnore?: boolean }) {
   const [state, action, pending] = useActionState(runScanAction, idle);
   const area = useRef<HTMLTextAreaElement>(null);
   const [mask, setMask] = useState(true);
@@ -70,7 +70,7 @@ export function ScanForm({ sample, exhausted }: { sample: string; exhausted: boo
           {state.findings.length === 0 ? (
             <EmptyState title="Nothing stood out" body="No rule matched and no line looked unusual in this sample. That is a good sign, though a short sample can hide problems." />
           ) : (
-            <Card><ul>{state.findings.map((f) => <FindingRow key={f.rank} f={f} />)}</ul></Card>
+            <Card><ul>{state.findings.map((f) => <FindingRow key={f.rank} f={f} canIgnore={canIgnore} />)}</ul></Card>
           )}
           <Alert>Findings are shown once. Turn on retention in Settings to keep them in History.</Alert>
         </section>

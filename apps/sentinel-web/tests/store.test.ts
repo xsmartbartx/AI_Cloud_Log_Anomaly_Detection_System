@@ -221,3 +221,29 @@ test("noopIfForbidden swallows role errors only", async () => {
   await noopIfForbidden(async () => { throw new ForbiddenError("keys:write"); });
   await assert.rejects(() => noopIfForbidden(async () => { throw new Error("real failure"); }), /real failure/);
 });
+
+test("ignore rules mute matching lines for that org only", async () => {
+  const a = createStore(db, await mkCtx("ign-a"));
+  const b = createStore(db, await mkCtx("ign-b"));
+  const input = [...sample.split("\n"), "WARN retrying health check (attempt 2)"].join("\n");
+
+  const first = await a.runScan(input, "web");
+  assert.ok(first.ok && first.findings.some((f) => f.text.includes("retrying health check")));
+
+  await a.addIgnoreRule("WARN retrying health check");
+  const second = await a.runScan(input, "web");
+  assert.ok(second.ok && !second.findings.some((f) => f.text.includes("retrying health check")), "muted for org a");
+  assert.ok(second.ok && second.findings.some((f) => f.text.includes("out of memory")), "other findings stay");
+
+  const other = await b.runScan(input, "web");
+  assert.ok(other.ok && other.findings.some((f) => f.text.includes("retrying health check")), "org b is unaffected");
+
+  await assert.rejects(() => a.addIgnoreRule(".*"), /specific|match/i);
+  const listed = await a.listRules();
+  assert.equal(listed.filter((r) => r.kind === "ignore").length, 1);
+});
+
+test("members cannot add ignore rules", async () => {
+  const m = createStore(db, await mkCtx("ign-m", "member"));
+  await assert.rejects(() => m.addIgnoreRule("ERROR something specific"), ForbiddenError);
+});

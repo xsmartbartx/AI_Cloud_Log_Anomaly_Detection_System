@@ -4,6 +4,7 @@ import { getDb } from "./db";
 import { orgFromRow, type Ctx } from "./store";
 import type { Role } from "./authz";
 import { provision, type Identity } from "./provision";
+import { PLANS, type PlanId } from "./plans";
 
 export const clerkEnabled = () => !!process.env.CLERK_SECRET_KEY && !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
@@ -27,7 +28,9 @@ async function identity(): Promise<Identity & { getEmail: () => Promise<string |
   if (process.env.NODE_ENV === "production") throw new Error("Authentication is not configured. Set the Clerk environment variables.");
   // Local development only. DEMO_ROLE lets the e2e suite exercise the member role.
   const role = ROLES.find((r) => r === process.env.DEMO_ROLE) ?? "owner";
-  return { clerkOrgId: "org_demo", orgName: "Acme Platform Team", clerkUserId: `user_demo_${role}`, role, email: `${role}@acme.test`, getEmail: async () => undefined };
+  // DEMO_PLAN gives the e2e suite enough scans; it only applies when the demo org is first created.
+  const plan: PlanId = PLANS.find((p) => p.id === process.env.DEMO_PLAN)?.id ?? "free";
+  return { clerkOrgId: "org_demo", orgName: "Acme Platform Team", clerkUserId: `user_demo_${role}`, role, email: `${role}@acme.test`, plan, getEmail: async () => undefined };
 }
 
 /** Verified session with org and member rows. Resolved once per request (React cache), and no writes for a returning member. */

@@ -72,3 +72,19 @@ export async function addRuleAction(_p: RuleState, form: FormData): Promise<Rule
 export async function toggleRuleAction(form: FormData) { await noopIfForbidden(async () => (await store()).toggleRule(String(form.get("id")))); revalidatePath("/app/rules"); }
 export async function deleteRuleAction(form: FormData) { await noopIfForbidden(async () => (await store()).deleteRule(String(form.get("id")))); revalidatePath("/app/rules"); }
 export async function retentionAction(form: FormData) { await noopIfForbidden(async () => (await store()).setRetention(form.get("retain") === "on")); revalidatePath("/app/settings"); }
+
+export type IgnoreResult = { ok: true } | { ok: false; message: string };
+const ignoreInput = z.string().min(1, "Enter a pattern.").max(200, "Pattern is longer than 200 characters.");
+
+/** Mute lines matching a pattern for this organization. Stores the pattern only, never a log line. */
+export async function ignoreLinesAction(pattern: string): Promise<IgnoreResult> {
+  const parsed = ignoreInput.safeParse(pattern);
+  if (!parsed.success) return { ok: false, message: parsed.error.issues[0].message };
+  try {
+    await (await store()).addIgnoreRule(parsed.data);
+  } catch (e) {
+    return { ok: false, message: msg(e, "Could not add the rule.") };
+  }
+  revalidatePath("/app/rules");
+  return { ok: true };
+}
