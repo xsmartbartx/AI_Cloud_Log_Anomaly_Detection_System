@@ -6,8 +6,8 @@ Linegist is a NEXORA product (formerly a card on onenexora.com, earlier named Se
 
 ## What it does
 
-- **Scan:** paste or upload up to 50,000 lines or 4 MB. Built-in rules plus frequency analysis return a ranked top ten, each with the rule or "unusual shape" that picked it and its line number. The same input always gives the same output.
-- **Privacy:** samples are analysed and discarded. Secrets are masked in the browser before sending and again on the server. Findings are kept only if an organization turns retention on, with secrets masked, for 30 days.
+- **Scan:** paste or upload up to 50,000 lines or 4 MB. Built-in rules plus frequency analysis return a ranked top ten, each with the rule or "unusual shape" that picked it and its line number. The same input always gives the same findings (the response also carries a timing field, which varies).
+- **Privacy:** samples are analysed and discarded. In the web app, a checkbox (on by default) masks secrets in the browser before the text is sent; API scans send the text as given. On the server, secrets are masked in every result either way. Findings are kept only if an organization turns retention on, with secrets masked, for 30 days.
 - **Dashboard:** usage and plan, history, custom rules, "ignore lines like this" (stores only a pattern), API keys, roles (owners and admins manage; members scan), settings.
 - **API:** `POST /api/v1/scans` with a Bearer key. See `/docs` in the app.
 - **Billing:** Free (20 scans a month), Starter, Pro, Business, Scale, monthly or yearly. Scans pause at the limit; there is no overage billing.
