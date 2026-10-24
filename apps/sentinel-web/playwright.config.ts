@@ -17,14 +17,14 @@ export default defineConfig({
   webServer: [
     {
       // Fresh database every run. Uses the installed Chrome, so no browser download.
-      command: `rm -rf .data/e2e && SENTINEL_DATA_DIR=.data/e2e npx next dev -p ${PORT}`,
+      command: `rm -rf .data/e2e && SENTINEL_DATA_DIR=.data/e2e DEMO_PLAN=scale npx next dev -p ${PORT}`,
       port: PORT,
       reuseExistingServer: false,
       timeout: 120_000,
     },
     {
       // Second server, signed in as a member, with its own database and build directory.
-      command: `rm -rf .data/e2e-member && SENTINEL_DATA_DIR=.data/e2e-member DEMO_ROLE=member NEXT_DIST_DIR=.next-member npx next dev -p ${MEMBER_PORT}`,
+      command: `rm -rf .data/e2e-member && SENTINEL_DATA_DIR=.data/e2e-member DEMO_ROLE=member DEMO_PLAN=scale NEXT_DIST_DIR=.next-member npx next dev -p ${MEMBER_PORT}`,
       port: MEMBER_PORT,
       reuseExistingServer: false,
       timeout: 120_000,
