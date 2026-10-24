@@ -1,5 +1,7 @@
 # Parity report
 
+> **Update 2026-10-24.** Score 86.4 / 100, must-haves 9 of 12, verdict still **not shippable** for the same three reasons (Clerk sign-in, the NEXORA redirect session check, Console usage). Done since the first report: results export, in-browser secret masking, "ignore lines like this" (not scored, the original does not have it), 38 e2e tests, production-build smoke in CI, Next 16.4.2 and an `undici` bump for new advisories. Stripe test products and prices exist but are unverified; Clerk Development has Organizations on but nothing was tested. All four PRs are merged to `main`. The text below is the original report.
+
 Date: 2026-10-14. Baseline: NEXORA's current public Sentinel (onenexora.com/products/sentinel, sentinel.onenexora.com, pricing page). Public pages only; the logged-in Console and `/app` were not viewed.
 
 ## Feature parity: 82.7 / 100 (see `python3 replica/parity.py replica/features.csv`)
