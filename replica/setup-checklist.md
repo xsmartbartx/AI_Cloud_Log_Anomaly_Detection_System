@@ -4,7 +4,7 @@ For you to do. Claude does not create accounts, type passwords or keys, or buy a
 
 **Rules for keys:** put them only in `.env.local` (gitignored) and in the host's environment settings. Never paste a key into chat, a commit, a PR or an issue. Use **test mode** for Stripe and a **development** Clerk instance until step 7.
 
-Product name in the examples: **Linegist**, host `linegist.onenexora.com`. If you change the name, change the host consistently.
+Product name in the examples: **Linegist**, host `linegist.onenexora.com`, hosted on OCI. If you change the name, change the host consistently.
 
 ---
 
@@ -73,26 +73,23 @@ curl -s -H "x-nexora-timestamp: $TS" -H "x-nexora-signature: $SIG" "http://local
 ```
 Expect JSON; a wrong signature must return 401.
 
-## 5. Host (Vercel)
+## 5. Host (your OCI VM)
 
-1. Import the GitHub repo. **Root Directory:** `apps/sentinel-web`. Enable **Include source files outside of the Root Directory** (it uses `packages/detector`). Install command from the repo root (npm workspaces).
-2. Set every variable from `.env.example` in the host's **Production** and **Preview** settings. Also `APP_URL=https://linegist.onenexora.com`, `CRON_SECRET` (random), and `PG_POOL_MAX`.
-3. `vercel.json` already schedules `/api/cron/purge` daily; Vercel sends the `CRON_SECRET` automatically.
-4. First preview deploy: confirm the build passes. The native regex module (RE2) must install on Linux; if it does not, tell me and I will switch to `re2-wasm` (one file).
-5. Do **not** set `ALLOW_TEST_BILLING` in production.
+Hosting is on OCI with Docker Compose and Caddy. The whole runbook, with the exact commands, is [`deploy/oci/README.md`](../deploy/oci/README.md); here is what you decide and do:
+
+1. Pick the VM (2 GB RAM or more for building; arm64 or x86) and attach a **reserved public IP**.
+2. Open TCP 80 and 443 in the VCN **and** in the VM's own firewall; limit 22 to your IP.
+3. Put the values from steps 1 to 4 in `deploy/oci/.env` (copy `.env.example`, `chmod 600`). `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` is baked in at image build time.
+4. `docker compose --env-file .env up -d --build`, then check `https://linegist.onenexora.com/api/health`.
+5. Add the two cron lines (purge and backup) and **copy backups off the VM**. Test a restore once.
 
 ## 6. DNS and redirect
 
-Edit DNS where `onenexora.com` is managed (you, or whoever owns it):
+Add an **A record** `linegist` for `onenexora.com` pointing at the VM's reserved public IP, and wait for `dig +short linegist.onenexora.com` to return it before the first start (Caddy fetches the certificate on startup).
 
-| record | name | value |
-| --- | --- | --- |
-| CNAME | `linegist` | the target Vercel shows for the domain (typically `cname.vercel-dns.com`) |
-| TXT | as Vercel asks | its verification value, if requested |
+Keep `sentinel.onenexora.com` working with a redirect (a second host block in `deploy/oci/Caddyfile`, or at NEXORA's current host). Point NEXORA's product card and `/products/sentinel` at `https://linegist.onenexora.com/go`. No email DNS is needed; the app sends no email.
 
-Add a 301 from `sentinel.onenexora.com` (and the old Lineworth host if ever used) to `linegist.onenexora.com`. Point NEXORA's product card and `/products/sentinel` at `https://linegist.onenexora.com/go`. No email DNS is needed; the app sends no email.
-
-**Check:** `curl -I https://linegist.onenexora.com/api/health` returns 200 over HTTPS; the old host redirects.
+**Check:** `curl -I https://linegist.onenexora.com/api/health` returns 200 over HTTPS.
 
 ## 7. Go-live gate (nothing here is done by me without your explicit go)
 

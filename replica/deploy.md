@@ -38,21 +38,15 @@ Only `app/design/layout.tsx` and `app/robots.ts`. Nothing is committed or pushed
 
 ## Step 3: host and domain
 
-- **Host:** Vercel. Import the repo; Root Directory `apps/sentinel-web`; enable "Include source files outside of the Root Directory" (it uses `packages/detector`); install from the repo root (npm workspaces). `vercel.json` already schedules `/api/cron/purge` daily; set `CRON_SECRET` so Vercel sends it. `main` deploys, pull requests get previews.
-- **RE2 native module:** confirm the first preview build installs it on Linux; if not, switch to `re2-wasm` (one file: `lib/store.ts`).
-- **DNS (at the registrar that holds onenexora.com; you edit it):**
-
-| record | name | value |
-| --- | --- | --- |
-| CNAME | `lineworth` | the target Vercel shows for the domain (typically `cname.vercel-dns.com`) |
-| TXT | as asked by Vercel | the verification value, if requested |
-
-  Keep `sentinel.onenexora.com` as a redirect (301) to `linegist.onenexora.com` so existing links work; do that in Vercel's domain settings or at NEXORA's host. Update NEXORA's product card and `/products/sentinel` to point at `linegist.onenexora.com/go`. No email DNS (SPF/DKIM/DMARC) is needed for this app, since it sends no mail.
-- HTTPS is automatic on Vercel; check it. One canonical host: `linegist.onenexora.com`.
+- **Host: OCI VM, Docker Compose, Caddy.** Full runbook in [`deploy/oci/README.md`](../deploy/oci/README.md). The image builds from `apps/sentinel-web/Dockerfile`; Postgres, a one-off migration job, the app and Caddy run from `deploy/oci/docker-compose.yml`. The daily purge and backup are host cron jobs (`purge.sh`, `backup.sh`). `vercel.json` was removed.
+- **Tested locally on arm64:** the image builds (453 MB), the migration applies both SQL files and repeats cleanly, the container is healthy and runs as a non-root user, and the API scan, Console endpoint, purge endpoint and fail-closed `/app` all behave against a real Postgres. **Not tested:** anything on OCI itself, Clerk, Stripe.
+- **Build-time values:** `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and `NEXT_PUBLIC_CLERK_SIGN_IN_URL` are inlined into the bundle at image build time (passed as build args by compose); changing them needs a rebuild.
+- **DNS:** an **A record** `linegist` for `onenexora.com` to the VM's reserved public IP. Caddy gets the certificate on first start, so DNS must resolve first.
+- HTTPS is automatic through Caddy; check it. One canonical host: `linegist.onenexora.com`. Keep `sentinel.onenexora.com` as a redirect.
 
 ## Step 4: watch it
 
-None installed yet. Before launch: error tracking (Sentry or Vercel's), uptime checks on `/` and `/api/health`, log retention (never log sample text; the app does not), a privacy-friendly analytics tool, and an alert to your email. Add the processors to the privacy policy.
+None installed yet. Before launch: error tracking (Sentry or similar), uptime checks on `/` and `/api/health`, log retention (never log sample text; the app does not), a privacy-friendly analytics tool, and an alert to your email. Add the processors to the privacy policy.
 
 Then do the core flow on the live site yourself (sign in, paste, scan, result, API key, scan by API, upgrade, cancel) and on a phone.
 

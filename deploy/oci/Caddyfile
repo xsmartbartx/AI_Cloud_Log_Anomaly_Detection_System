@@ -1,0 +1,16 @@
+# Caddy gets and renews the HTTPS certificate by itself once DNS for {$LINEGIST_HOST} points at this VM
+# and ports 80 and 443 are open (OCI network rules AND the VM's own firewall).
+{$LINEGIST_HOST} {
+	encode zstd gzip
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+	# Samples can be up to 4 MB; leave headroom for multipart overhead.
+	request_body {
+		max_size 6MB
+	}
+	reverse_proxy app:3000
+}
