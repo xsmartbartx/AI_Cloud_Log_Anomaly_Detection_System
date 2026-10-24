@@ -28,3 +28,16 @@ rad.json
 *.g.xlf
 *.flf
 TestResults.xml
+# Next.js
+.next/
+next-env.d.ts
+
+# Sentinel local data
+.data/
+.env.local
+.env*.local
+
+# Playwright
+test-results/
+playwright-report/
+.next-member/

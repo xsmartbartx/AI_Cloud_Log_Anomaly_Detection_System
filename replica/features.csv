@@ -1,0 +1,33 @@
+feature,area,priority,original,clone,notes
+Product landing page for Sentinel,marketing,must,yes,yes,exists at sentinel.onenexora.com; redo with Azure/Apple-style design
+Redirect from NEXORA product card to Sentinel,handoff,must,yes,partial,/go to /app; signed-out users go to /sign-in then the account domain once NEXT_PUBLIC_CLERK_SIGN_IN_URL is set
+Sign in via NEXORA SSO (shared identity),auth,must,yes,partial,"Clerk wired (auth(), provider, middleware, webhook); untested until keys exist. Demo user in dev only"
+Paste log sample and run scan,scan,must,yes,yes,core loop
+Keyword rule detection (fatal/error/reliability),detection,must,yes,yes,9 built-in rules
+Statistical outlier detection (rare line shapes),detection,must,yes,yes,shape masking + frequency; 7 unit tests
+Ranked top-10 findings with severity and reason,results,must,yes,yes,
+Stateless scan (nothing stored by default),privacy,must,yes,yes,findings shown once; retention opt-in
+Plan quotas (20/150/1500/7500/40000 scans),billing,must,yes,yes,"atomic SQL charge, refund on invalid input; concurrency test passes"
+Dashboard overview with usage and recent scans,dashboard,must,yes,yes,
+Usage reported to NEXORA Console,integration,must,yes,partial,"GET /api/internal/usage, HMAC-signed; needs CONSOLE_SHARED_SECRET and a Console caller; not exercised"
+Pricing page with monthly/yearly toggle,marketing,must,yes,yes,
+Scan history (metadata),dashboard,should,unknown,yes,Postgres
+Upload log file,scan,should,unknown,yes,
+Export results (JSON/CSV/copy),results,should,unknown,yes,"copy JSON, download JSON and CSV (formula-safe); e2e F08-H2"
+API keys and REST scan endpoint,developer,should,unknown,yes,"verified end to end with a real key; sha256 stored, rate limited"
+Docs and quickstart,developer,should,yes,yes,
+Custom rules,detection,should,unknown,yes,"RE2 safe engine, 200-char cap"
+Team members and roles,org,should,unknown,partial,roles enforced (owner/admin/member); list read-only; invites in Clerk
+Upgrade flow via NEXORA billing,billing,should,yes,partial,"Stripe Checkout + portal + webhooks coded, idempotent, unit-tested; needs Stripe test keys and prices"
+Status page link,trust,should,yes,yes,footer links to status.onenexora.com
+Mark finding true/false positive (feedback),results,should,no,no,"entrepreneur: noise theme, 5 comments (1 source). Store rule id / shape hash only, not text"
+Opt-in sample retention,privacy,could,no,yes,"retains redacted findings only, not full sample"
+Webhook/Slack alerts on scan,alerts,could,no,no,repo alert tables
+Log format auto-detect (JSON/syslog/nginx),detection,could,unknown,no,
+Live cloud log connections,connect,could,roadmap,skip,streaming platform; deferred
+AI/LLM deep analysis,detection,could,roadmap,skip,needs model decision
+Compliance badges,trust,could,no,skip,NEXORA avoids badge wall
+Ignore lines like this (mute a shape or rule per org),results,should,no,no,entrepreneur: noise + what-to-read themes; creates an exclude rule
+Mask secrets in the browser before the sample is sent,privacy,should,no,yes,"on by default, covers pasted text and uploaded files; e2e proves the secret is absent from the request body"
+"Spend cap guarantee: no overage billing, stated on site and pricing",billing,should,no,yes,"entrepreneur: cost theme, 17 comments (1 source). Behaviour exists (hard quota); copy goes to /replica-launch; stated on landing and pricing pages"
+New since last scan (compare shape hashes to previous scan),results,could,no,no,entrepreneur: what-to-read theme; needs a privacy decision on storing shape hashes

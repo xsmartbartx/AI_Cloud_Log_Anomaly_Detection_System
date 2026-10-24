@@ -1,0 +1,83 @@
+{
+  "request_patterns": [
+    "\\bno great\\b",
+    "\\bwhy (can'?t|isn'?t|doesn'?t)\\b",
+    "\\bi wish\\b",
+    "\\bhaven'?t found an alternative\\b",
+    "\\bwould be (nice|great|good)\\b"
+  ],
+  "themes": [
+    {
+      "id": "cost",
+      "label": "Log tooling cost spirals",
+      "kind": "complaint",
+      "patterns": [
+        "\\bexpensive\\b",
+        "\\bspiral",
+        "\\b(huge|financial|real) (aws )?(charges|risk)\\b",
+        "\\bgrow too expensive\\b",
+        "\\bpric(y|ey)\\b",
+        "\\b7 figures\\b",
+        "\\bburn \\d+%",
+        "\\bcost.{0,20}(issues|related)\\b",
+        "\\bbills?\\b"
+      ]
+    },
+    {
+      "id": "noise",
+      "label": "Noise, false positives and alert fatigue",
+      "kind": "complaint",
+      "patterns": [
+        "\\blog noise\\b",
+        "\\bsignal.to.noise\\b",
+        "\\bnoise to the signal\\b",
+        "\\bfalse positives?\\b",
+        "\\binundate\\b",
+        "\\bnot actually matter|don'?t actually matter\\b"
+      ]
+    },
+    {
+      "id": "what-to-log",
+      "label": "Nobody knows what is worth reading or logging",
+      "kind": "complaint",
+      "patterns": [
+        "\\bworth logging\\b",
+        "\\bunnecessary logging\\b",
+        "\\bhow much data do we actually need\\b",
+        "\\bavoid the hell out of logging\\b",
+        "\\bwhat'?s actually worth\\b"
+      ]
+    },
+    {
+      "id": "ai-paste",
+      "label": "Pasting logs into AI, and the privacy worry",
+      "kind": "signal",
+      "patterns": [
+        "\\bpaste\\b.{0,60}\\b(llm|chatgpt|claude)\\b",
+        "\\b(llm|chatgpt|claude)\\b.{0,80}\\bpaste",
+        "\\bpasting real credentials\\b",
+        "\\bsmart ai log analy"
+      ]
+    },
+    {
+      "id": "ai-trust",
+      "label": "Distrust of AI mistakes",
+      "kind": "complaint",
+      "patterns": [
+        "\\bwill make mistakes\\b",
+        "\\bfeedback or filtering\\b",
+        "\\bskeptical\\b"
+      ]
+    },
+    {
+      "id": "search-power",
+      "label": "Grep stops scaling, search and speed matter",
+      "kind": "complaint",
+      "patterns": [
+        "\\bgrep\\b",
+        "\\binstant text search\\b",
+        "\\bhard to answer\\b"
+      ]
+    }
+  ]
+}

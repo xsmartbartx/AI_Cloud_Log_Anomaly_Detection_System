@@ -1,0 +1,91 @@
+source,url,date,rating,text
+hacker-news,https://news.ycombinator.com/item?id=23136582,2020-05-10,,"CloudWatch Logs has no ingestion rate limits.  Using it is a real financial risk.  Misbehaving servers can quickly generate huge AWS charges, up to $74,000 per day per account.  Even 12 servers could produce $4320 in charges just over a weekend.
+Also the CloudWatch Logs console is unusable for even simple tasks.
+Datadog and its competitors have ingestion rate limits, but they are overall quite expensive.  Self-hosted log analysis tools are exceedingly complex to set up and maintain: ElasticSearch + Kibana, Grafana + Loki."
+hacker-news,https://news.ycombinator.com/item?id=12683098,2016-10-11,,"We're hosted on AWS and used Papertrail. Found it super useful but it got really expensive. Since the new cloudwatch UI improvements, we're down to only using Cloudwatch logs. The UI still sucks quite a lot, but not enough to justify tripling logging costs."
+hacker-news,https://news.ycombinator.com/item?id=32111214,2022-07-15,,I'm a daily user of Papertrail. It's starting to grow too expensive for our team ($100/16 GB). Still I haven't found an alternative with instant text search and infinite scroll. The ability to quickly scroll through the logs has proven to be crucial to debugging critical problems. I'm having a hard time filtering through JSON logs in Grafana/Elastic search/cloud-native log engine.
+hacker-news,https://news.ycombinator.com/item?id=41283326,2024-08-18,,"Be careful with hosted services like Amazon CloudWatch. They can get quite expensive if you log too many details. 
+I think you can really save a lot of money with your own solution, eg using Prometheus / Grafana."
+hacker-news,https://news.ycombinator.com/item?id=37587389,2023-09-20,,"> I mean, maybe you end up integrating splunk or perhaps self-hosting kibana
+I think this is the issue. Both Splunk and OpenSearch (even self-hosted OpenSearch) get really pricy as well especially with large volumes of log data. Cloudwatch can also get ludicrously expensive. They charge something like $0.50 per GB (!) and another $0.03 per GB to store. I've seen situations at a previous employer where someone accidentally deployed a lambda function with debug logging and ran up a few thousand $$ in Cloudwatch bills overnight.
+You should look at Coralogix (disclaimer: I work there). We've built a platform that allows you to store your observability data in S3 and query it through our infrastructure. It can be dramatically more cost-effective than other providers in this space."
+hacker-news,https://news.ycombinator.com/item?id=27830545,2021-07-14,,"The only thing I can actually suggest is to avoid the hell out of logging if you can. It’s a really expensive concern and should be treated so from day one. If your system has nothing actionable to log them don’t log it.
+At a high level from observations of trying to handle 100Gb a day.
+Cloudwatch is inflexible and expensive.
+ELK is expensive to run and administer. The commercial variants are even worse.
+Splunk is expensive and slow.
+Datadog is expensive.
+Loki is expensive to run and administer.
+ryslogd and grep starts to feel like a viable solution eventually. Then you realise that you need about 50MB of that 100G a day of logs and enlightenment comes."
+hacker-news,https://news.ycombinator.com/item?id=20785518,2019-08-24,,"“And its expensive. Maybe its comparable to something like New Relic, I don't know, but relative to StackDriver or CloudWatch? Its in a totally different league. ”
+To be fair to Datadog, their UI/UX is also in a totally different league. Stackdriver Logging is a total PITA to use when trying to investigate and correlate historical logs."
+hacker-news,https://news.ycombinator.com/item?id=40221888,2024-05-01,,"Sadly, my experience has been that this is way too expensive, so you have to decide.
+These days, something like 90% of the issues I to have to deal with observability are cost related. ""You can't have that amount of cardinalities."", ""Do you really need this metric?"", ""We've decided to turn off all logs in dev envs, they are too expensive."", ..."
+hacker-news,https://news.ycombinator.com/item?id=46510407,2026-01-06,,"I would add that ""extremely sound data engineering"" is also necessary to make observability cost-effective. Some of these otel platforms can burn 10%-25% of your cloud budget to show you your logs. That is insane."
+hacker-news,https://news.ycombinator.com/item?id=30308872,2022-02-12,,"I’ve worked for a few companies who all love using Splunk but also have struggles with spiraling costs so try and reduce usage, unsuccessfully. They are non trivial spends at not so small companies.
+Similarly with Datadog.
+They seem like a service when people start using them they prove to be very valuable so more people in the company use them and so the cost goes up significantly with the usage.
+At that point the options are rely less on Splunk which people try to do but almost never happens in practice as Splunk is so useful/tiered logging more hassle than the company wants. Find an alternative which again is hard to do as the options are limited and has associated migration costs, also as long as they keep developing the service they keep giving a reason to stay.
+It seems like the perfect business model. For all intent and purposes they give enough functionality/ usefulness to create vendor lock in, in everything but name. Customers usage continue to increase significantly meaning customers are always guaranteed to be increasingly spend more and more.
+Unless they are deliberately trying not to make a profit and concentrate on growth it’s hard to see how they are not making money when people are spending 500k-1million+ a month just on log storage."
+hacker-news,https://news.ycombinator.com/item?id=20707738,2019-08-15,,"At my company, we used to pay 7 figures to splunk, until we realized how much data do we actually need. We cut down a lot of unnecessary logging and sent only the things that were needed.
+Most of the data that was needed by business folks was sent to segment in terms of events and for genuine errors were sent to sentry with stack traces and converted most of the logs to metrics.
+This helped us cut down a lot of $$ for logging and monitoring. Elastic search is a great alternative, but it takes an entire  team to maintain it. I'm not sure, if its worth the time and effort."
+hacker-news,https://news.ycombinator.com/item?id=34166000,2022-12-28,,"A monitoring system is more than just the TSDB. You've got all those pre-built integrations with everything else. All those log, traces and a nice GUI for your user to actually be able to use them.
+Currently in the later stages of a Datadog project. Which of course means we are working to get the cost down a little. Modern apps product a lot of logs, traces and metrics.
+SaaS solutions for monitoring are usually great except for the cost. You can build (I'd advise going with the Grafana stack) but I'd only go down that route if SaaS was way too expensive.
+Monitoring always takes a long time to setup whatever you do. Manually setting up every app, team, server just takes ages."
+hacker-news,https://news.ycombinator.com/item?id=17506703,2018-07-11,,"I am skeptical of anomaly detection since in my experience anomalies are common and diverse and don't actually matter, so I expect these systems to basically inundate people with false positives.
+Their offline training accuracy is garbage: 16% precision, so all of the real work is basically being done in the online training portion, which gets it to a respectable 82%+ precision.
+But they don't tell you how many alerts they had to label to get those numbers. Maybe over the long run you get those numbers, but you really want to know if it takes 10 or 10,000 examples to get there.
+Also, their dataset distribution is very different to reality: they have 7% of their dataset annotated as real anomalies; I don't think anyone in the real world wants 5% of their log entries to get flagged as anomalies. So I expect their precision numbers to be far worse on more realistically distributed logs."
+hacker-news,https://news.ycombinator.com/item?id=23491097,2020-06-11,,"Congrats on the launch. Having worked at a startup in the AIOps space, I can can offer a few suggestions.
+1. No matter how good your AI, it will make mistakes. Users need ways to provide feedback or filtering to avoid bad alert fatigue. Giving users a sense of control is critical.
+2. Most larger shops will have dozens of monitoring tools already generating alerts. Consider ingesting existing alerts as another algorithmic signal.
+3. The real root cause of an incident often won't show up in logs. Don't assume that the earliest event in a cluster is causal.
+4. The more context you can provide an operator looking at a potential incident, the better. Modern SEIM tools do an ok job here. Consider pulling in topology or other enrichment sources and matching entity names/IDs to log data.
+Good luck. Contact in profile if you'd like to chat further."
+hacker-news,https://news.ycombinator.com/item?id=18997944,2019-01-25,,"> ""Log noise"" is a legitimate security concern all by itself. It is actually disappointing how rarely it is discussed, and how in this world of ""AI everywhere"" there's no great smart AI log analysers to reduce the signal:noise.
+That's because after many people learn about not using ""security through obscurity"" they apply the rule without thinking as if obscurity never has any benefit for anything."
+hacker-news,https://news.ycombinator.com/item?id=18993600,2019-01-24,,"Well said.
+""Log noise"" is a legitimate security concern all by itself. It is actually disappointing how rarely it is discussed, and how in this world of ""AI everywhere"" there's no great smart AI log analysers to reduce the signal:noise.
+Moving the SSH port might ""only"" reduce noise, but that's a legitimate security goal in its own right."
+hacker-news,https://news.ycombinator.com/item?id=31787281,2022-06-18,,"My point is log analysis is noise to the signal. A poor way to discern what went wrong or to proactively monitor to avoid an incident in the first place. There are loads of tools out there, some of which have been mentioned in this thread, that monitor from network to user to app layer and are superior for triage. If someone is down in the bowels of logs, it's gonna be a bad time. I spent a decade triaging high-profile incidents around the world and teaching organizations how to do this stuff."
+hacker-news,https://news.ycombinator.com/item?id=47195036,2026-02-28,,"This is a great example of RAG done right, feeding domain-specific data to an LLM instead of relying on generic training.
+The signal-to-noise ratio in CI logs is brutal though.
+Curious how you handled deduplication and filtering before embedding? 
+In my experience that preprocessing step makes or breaks the quality of retrieval."
+hacker-news,https://news.ycombinator.com/item?id=44346010,2025-06-22,,"If you work for a large enterprise, there are so many dev teams supporting so many products that ""we haven't figured out what's actually worth logging"" is just disconnected from the developer incentives in those teams (ship features fast, fix your problems even faster because nobody has time for that BS) as well as ops incentives (the servers ARE on fire, and the devs didn't log enough). FinOps comes last, if there's even cost tracking per team in the observability suite.
+You don't understand why DataDog has a $44 billion market cap. It's yet another instance of Finance complaining that the transition to The Cloud gave every engineer a corporate credit card with no spend controls or a way for Finance to turn off the spigot."
+hacker-news,https://news.ycombinator.com/item?id=36501920,2023-06-28,,"If you're not excluding debugging and info logs at the SaaS level, you're doing logging with a SaaS provider wrong. Log everything including debug, exclude debug and info, set up alerts for error logs, wait until an error comes in, re-enable debug logging for 15 minutes if you need to, then enable the exclusion again.
+SaaS observability gives you the tools to control these costs. It's much, much cheaper to log up to debug if you're not indexing them most of the time. If you don't understand features like exclusion rules, you should go learn them."
+hacker-news,https://news.ycombinator.com/item?id=48588932,2026-06-18,,"You can only cost-cut your reliability so much.
+If you treat logs as liabilities and bills to be reduced or removed, you will blind yourself; you will have less to pay for logging but at the price of customer churn, incident response muscles, engineering debugging hours, and less observability insight.
+Instead, view your logs through the lens of the Quad: understand what is useful, what can be more efficiently emitted, and maintain your operations sanity and bills without losing the insights that matter."
+hacker-news,https://news.ycombinator.com/item?id=40937181,2024-07-11,,"I would say from my experience, for _application logs_, it's the exact opposite. When you deal with a few GB/day of data, you want to have logs, and metrics can be derived from those logs.
+Logs are expensive compared to metrics, but they convey a lot more information about the state of your system. You want to move towards metrics over time only one hotspot at a time to reduce cost while keeping observability of your overall system.
+I'll take logs over metrics any day of the week, when cost isn't prohibitive."
+hacker-news,https://news.ycombinator.com/item?id=46035322,2025-11-24,,"I literally copy the whole stack dump from the log, and paste it into the LLM (I find that ChatGPT does a better job than Claude), along with something along the lines of:
+ > I am getting occasional crashes on my iOS 17 or above UIKit program. Given the following stack trace, what problem do think it might be? 
+I will attach the source file, if I think I know the general area, along with any symptoms and steps to reproduce. One of the nice things about an LLM, is that it's difficult to overwhelm with too much information (unlike people).
+It will usually respond with a fairly detailed analysis. Usually, it has some good ideas to use as starting points.
+I don't think ""I have a bug. Please fix it."" would work, though. It's likely to  try , but  caveat emptor ."
+hacker-news,https://news.ycombinator.com/item?id=47335836,2026-03-11,,"I kept accidentally pasting real credentials into ChatGPT and Claude. Config files, logs, .env files — easy to miss something. So I built a tool to handle it automatically.
+It replaces sensitive values with fake but structurally valid ones before anything reaches the AI. The structure is preserved so the AI can still help. When you get a response back, paste it in and it swaps everything back to the real values.
+Runs entirely in the browser. No server, no accounts, nothing stored anywhere.
+What it catches: API keys (AWS, OpenAI, GitHub, Slack and more), passwords, IPs, emails, JWTs, connection strings, PII (SSNs, credit cards, phone numbers), AWS/cloud identifiers, UUIDs, MAC addresses.
+Browser extension auto-redacts on paste across 30+ AI sites so you don't have to think about it. Also a VS Code extension and a web tool.
+privatiser.net — free, 100% local."
+hacker-news,https://news.ycombinator.com/item?id=22399373,2020-02-23,,"Flat files and grep works to a level. For huge datasets it can be _really_ hard to answer some questions using pipes, grep, awk, etc. that something like a structured query makes pretty simple.
+We tried using CloudWatch logs insights at work and I was blown away by how fast it was on indexed data (we saw 10+ GB/s searches across a few hours of logs. Only problem is that it was prohibitively expensive so we ended up not going with it.
+Biggest thing for me is that I don't want to own a log searching service/software. My customers don't see any benefit from me investing my time in a better log searching platform than what is already available out there IMO. I want to let someone who is an expert on querying logs to solve that problem so that I can solve my specific problem."
+hacker-news,https://news.ycombinator.com/item?id=17018167,2018-05-08,,"You don't monitor web logs, you ship the logs to cold storage every [crontab spec units for time :)] and monitor your hosts and network for unusual activity.
+If anything happens, THEN you look at the logs. The signal/noise ratio of the average web host logs makes combing through them just not worth it.
+There are tons of products out there - have a look at OSSEC ( https://www.ossec.net/ ), it's open source and free."
+hacker-news,https://news.ycombinator.com/item?id=43500939,2025-03-28,,"Quite a few years ago, I led a migration off from a legacy logging provider that offered little more than full text search over unstructured text.
+Logging at the time was somewhere in the ballpark of 1% of our total common infrastructure spend and widely acknowledged as too expensive relative to the minimal value we got from it with that rudimentary feature set, but it also was nowhere near enough cost to justify doing something about it. We had other observability costs that dwarfed it.
+What finally justified the overhaul was that security couldn’t really operate usefully on log data unless we pulled the data out somewhere else like Athena and processed it there. That slowed down security incident response times dramatically.
+The migration ultimately benefited the whole engineering organization but it had to be security led to get any traction."
+hacker-news,https://news.ycombinator.com/item?id=45921416,2025-11-13,,"Datadog log ingest isn't too expensive which will still enrich the logs and can dump to S3 (log archive) where you can use Athena/Trino
+Log indexing is $$$, though for sure
+Curious on Loki cost. When I priced out ELK at a smaller company it didn't come in much cheaper than $0.50/Gi everyone seems to charge (30 day retention, 2 shards, object storage backups). Back when I worked at JPMC, their internal service was also billed right around there."
