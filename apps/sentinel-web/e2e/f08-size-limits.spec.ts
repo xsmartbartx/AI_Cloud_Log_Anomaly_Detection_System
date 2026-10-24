@@ -27,7 +27,7 @@ test.describe("Size limits", () => {
     await page.goto("/app/keys");
     await page.getByLabel("Key name").fill("size");
     await page.getByRole("button", { name: "Create key" }).click();
-    const secret = (await page.locator("code", { hasText: /^lwk_/ }).innerText()).trim();
+    const secret = (await page.locator("code", { hasText: /^lgk_/ }).innerText()).trim();
     const headers = { authorization: `Bearer ${secret}` };
     const huge = await request.post("/api/v1/scans", { headers, data: { text: "x".repeat(7 * 1024 * 1024) } });
     expect(huge.status()).toBe(413);

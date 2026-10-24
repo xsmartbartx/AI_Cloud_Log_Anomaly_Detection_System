@@ -1,6 +1,6 @@
-export const metadata = { title: "Docs · Lineworth" };
+export const metadata = { title: "Docs · Linegist" };
 
-const curl = `curl -X POST https://lineworth.onenexora.com/api/v1/scans \\
+const curl = `curl -X POST https://linegist.onenexora.com/api/v1/scans \\
   -H "Authorization: Bearer $SENTINEL_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{"text": "2026-10-13T09:00:01Z ERROR db connection refused\\n..."}'`;
@@ -28,7 +28,7 @@ export default function Docs() {
       </header>
       <section className="space-y-3">
         <h2 className="text-lg">1. Web</h2>
-        <p className="text-sm">Open Lineworth, choose New scan, paste your sample or upload a text file, and run it. Limits: 50,000 lines or 4 MB per sample.</p>
+        <p className="text-sm">Open Linegist, choose New scan, paste your sample or upload a text file, and run it. Limits: 50,000 lines or 4 MB per sample.</p>
       </section>
       <section className="space-y-3">
         <h2 className="text-lg">2. API</h2>

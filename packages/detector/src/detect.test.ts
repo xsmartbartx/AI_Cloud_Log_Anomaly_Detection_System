@@ -69,3 +69,19 @@ test("shape masking keeps working without lookbehind (review)", () => {
   // Safari before 16.4 cannot parse lookbehind, and this module loads in the browser.
   assert.ok(!/\(\?<[!=]/.test(readFileSync(new URL("./index.ts", import.meta.url), "utf8")), "no lookbehind in the detector source");
 });
+
+test("ignore patterns remove matching lines from findings (rule hits and outliers)", () => {
+  const base = Array.from({ length: 40 }, (_, i) => `2026-10-13T10:00:${String(i).padStart(2, "0")}Z INFO ok ${i}ms`);
+  const input = [...base, "WARN retrying health check (attempt 2)", "ERROR db connection refused to 10.0.0.1:5432", "weird handshake seen once zzz"].join("\n");
+  const before = detect(input);
+  assert.ok(before.findings.some((f) => f.text.includes("retrying health check")));
+  assert.ok(before.findings.some((f) => f.text.includes("db connection refused")));
+
+  const after = detect(input, { ignore: [{ test: (s: string) => /retrying health check/i.test(s) }] });
+  assert.ok(!after.findings.some((f) => f.text.includes("retrying health check")), "ignored line is gone");
+  assert.ok(after.findings.some((f) => f.text.includes("db connection refused")), "others stay");
+  assert.equal(after.lineCount, before.lineCount, "line counts are unchanged");
+
+  const outlierIgnored = detect(input, { ignore: [{ test: (s: string) => /handshake/.test(s) }] });
+  assert.ok(!outlierIgnored.findings.some((f) => f.text.includes("handshake")));
+});

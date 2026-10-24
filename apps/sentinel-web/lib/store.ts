@@ -5,6 +5,7 @@ import { getDb, type Db } from "./db";
 import { assertCan, type Role } from "./authz";
 import { planById, type PlanId } from "./plans";
 import { requireCtx } from "./auth";
+import { validateIgnorePattern } from "./ignore-validate";
 
 /**
  * Data layer. Every function runs inside a Ctx (org + member from the verified session)
@@ -15,7 +16,7 @@ export type Org = { id: string; clerkOrgId: string; name: string; plan: PlanId; 
 export type Member = { id: string; clerkUserId: string; email: string; role: Role };
 export type ScanRow = { id: string; source: "web" | "api"; lineCount: number; byteCount: number; flaggedCount: number; durationMs: number; createdAt: string; findings: Finding[] | null };
 export type ApiKey = { id: string; name: string; prefix: string; createdAt: string; lastUsedAt: string | null; revokedAt: string | null };
-export type CustomRule = { id: string; name: string; pattern: string; severity: Severity; enabled: boolean };
+export type CustomRule = { id: string; name: string; pattern: string; severity: Severity; enabled: boolean; kind: "flag" | "ignore" };
 export type ScanOutcome =
   | { ok: true; scan: ScanRow; findings: Finding[] }
   | { ok: false; code: "quota" | InputError["code"]; message: string };
@@ -62,10 +63,15 @@ export function createStore(db: Db, ctx: Ctx) {
 
     try {
       const rules: Rule[] = [];
-      for (const r of await db.query<R>("select id, name, pattern, severity from rules where org_id=$1 and enabled", [orgId])) {
-        try { rules.push({ id: r.id, name: r.name, pattern: compileRule(r.pattern), severity: r.severity }); } catch { /* skip invalid */ }
+      const ignore: Array<ReturnType<typeof compileRule>> = [];
+      for (const r of await db.query<R>("select id, name, pattern, severity, kind from rules where org_id=$1 and enabled", [orgId])) {
+        try {
+          const compiled = compileRule(r.pattern);
+          if (r.kind === "ignore") ignore.push(compiled);
+          else rules.push({ id: r.id, name: r.name, pattern: compiled, severity: r.severity });
+        } catch { /* skip invalid */ }
       }
-      const result = detect(text, { rules });
+      const result = detect(text, { rules, ignore });
       const retain: boolean = org.retain_samples;
       const [scan] = await db.query<R>(
         `insert into scans (org_id, member_id, api_key_id, source, line_count, byte_count, flagged_count, duration_ms)
@@ -124,7 +130,7 @@ export function createStore(db: Db, ctx: Ctx) {
     },
     async createKey(name: string) {
       assertCan(role, "keys:write");
-      const secret = `lwk_${randomBytes(24).toString("base64url")}`;
+      const secret = `lgk_${randomBytes(24).toString("base64url")}`;
       await db.query("insert into api_keys (org_id, created_by, name, prefix, key_hash) values ($1,$2,$3,$4,$5)", [orgId, ctx.member.id, name, secret.slice(0, 8), sha256(secret)]);
       await audit("key.create", "api_key", null, { name });
       return { secret };
@@ -136,12 +142,20 @@ export function createStore(db: Db, ctx: Ctx) {
       await audit("key.revoke", "api_key", id, null);
     },
     async listRules(): Promise<CustomRule[]> {
-      return (await db.query<R>("select id, name, pattern, severity, enabled from rules where org_id=$1 order by created_at", [orgId])) as CustomRule[];
+      return (await db.query<R>("select id, name, pattern, severity, enabled, kind from rules where org_id=$1 order by created_at", [orgId])) as CustomRule[];
     },
     async addRule(name: string, pattern: string, severity: Severity) {
       assertCan(role, "rules:write");
       compileRule(pattern); // throws a readable error
       await db.query("insert into rules (org_id, name, pattern, severity) values ($1,$2,$3,$4)", [orgId, name, pattern, severity]);
+    },
+    async addIgnoreRule(pattern: string) {
+      assertCan(role, "rules:write");
+      const check = validateIgnorePattern(pattern);
+      if (!check.ok) throw new Error(check.message);
+      const name = `Ignore: ${pattern.length > 60 ? `${pattern.slice(0, 57)}...` : pattern}`;
+      await db.query("insert into rules (org_id, name, pattern, severity, kind) values ($1,$2,$3,'low','ignore')", [orgId, name, pattern]);
+      await audit("rule.ignore", "rule", null, { length: pattern.length });
     },
     async toggleRule(id: string) {
       assertCan(role, "rules:write");

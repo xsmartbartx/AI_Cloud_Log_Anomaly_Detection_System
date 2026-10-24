@@ -29,7 +29,7 @@ export async function POST(req: Request) {
   const db = await getDb();
   let customer = ctx.org.stripeCustomerId;
   if (!customer) {
-    customer = (await s.customers.create({ name: ctx.org.name, metadata: { org_id: ctx.org.id, product: "lineworth" } })).id;
+    customer = (await s.customers.create({ name: ctx.org.name, metadata: { org_id: ctx.org.id, product: "linegist" } })).id;
     await db.query("update organizations set stripe_customer_id=$2 where id=$1", [ctx.org.id, customer]);
   }
   const base = process.env.APP_URL ?? new URL(req.url).origin;

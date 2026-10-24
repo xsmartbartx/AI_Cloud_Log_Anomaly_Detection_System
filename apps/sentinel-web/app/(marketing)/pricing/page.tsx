@@ -1,6 +1,6 @@
 import { PricingTable } from "@/components/marketing/pricing-table";
 
-export const metadata = { title: "Pricing · Lineworth" };
+export const metadata = { title: "Pricing · Linegist" };
 
 export default function Pricing() {
   return (

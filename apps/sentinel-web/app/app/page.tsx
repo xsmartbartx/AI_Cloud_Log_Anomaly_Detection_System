@@ -4,7 +4,7 @@ import { Table, Th, Td } from "@/components/ui/table";
 import { ago, n } from "@/components/app/format";
 import { store } from "@/lib/store";
 
-export const metadata = { title: "Overview · Lineworth" };
+export const metadata = { title: "Overview · Linegist" };
 
 export default async function Overview() {
   const s = await store();

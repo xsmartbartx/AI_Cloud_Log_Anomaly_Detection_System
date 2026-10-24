@@ -11,7 +11,8 @@
     "db:seed": "tsx scripts/seed.ts",
     "test": "tsx --test tests/*.test.ts",
     "test:e2e": "playwright test",
-    "test:e2e:prod": "playwright test -c playwright.prod.config.ts"
+    "test:e2e:prod": "playwright test -c playwright.prod.config.ts",
+    "check:stripe": "tsx scripts/check-stripe.ts"
   },
   "dependencies": {
     "@anomaly/detector": "*",

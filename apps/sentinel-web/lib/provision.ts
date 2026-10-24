@@ -1,7 +1,8 @@
 import type { Db } from "./db";
 import type { Role } from "./authz";
+import type { PlanId } from "./plans";
 
-export type Identity = { clerkOrgId: string; orgName: string; clerkUserId: string; role: Role; email?: string };
+export type Identity = { clerkOrgId: string; orgName: string; clerkUserId: string; role: Role; email?: string; plan?: PlanId };
 type Row = Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
 
 /**
@@ -13,8 +14,8 @@ export async function provision(db: Db, who: Identity, getEmail: () => Promise<s
   let org = (await db.query<Row>("select * from organizations where clerk_org_id=$1", [who.clerkOrgId]))[0];
   if (!org) {
     org = (await db.query<Row>(
-      `insert into organizations (clerk_org_id, name) values ($1,$2)
-       on conflict (clerk_org_id) do update set updated_at = organizations.updated_at returning *`, [who.clerkOrgId, who.orgName]))[0];
+      `insert into organizations (clerk_org_id, name, plan) values ($1,$2,$3)
+       on conflict (clerk_org_id) do update set updated_at = organizations.updated_at returning *`, [who.clerkOrgId, who.orgName, who.plan ?? "free"]))[0];
   }
   let member = (await db.query<Row>("select id, clerk_user_id, email, role from members where org_id=$1 and clerk_user_id=$2", [org.id, who.clerkUserId]))[0];
   if (!member) {

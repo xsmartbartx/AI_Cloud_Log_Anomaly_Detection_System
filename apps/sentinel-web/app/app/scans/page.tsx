@@ -4,7 +4,7 @@ import { Table, Th, Td } from "@/components/ui/table";
 import { ago, n } from "@/components/app/format";
 import { store } from "@/lib/store";
 
-export const metadata = { title: "History · Lineworth" };
+export const metadata = { title: "History · Linegist" };
 
 export default async function History() {
   const scans = await (await store()).listScans();

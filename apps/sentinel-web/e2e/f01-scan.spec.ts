@@ -6,7 +6,7 @@ test.describe("F01 visitor scans a log", () => {
     const done = guard(page);
     await page.goto("/");
     await a11y(page);
-    await page.getByRole("link", { name: "Open Lineworth" }).first().click();
+    await page.getByRole("link", { name: "Open Linegist" }).first().click();
     await expect(page).toHaveURL(/\/app$/);
     await page.getByRole("link", { name: "New scan" }).first().click();
     await page.getByRole("button", { name: "Use example" }).click();

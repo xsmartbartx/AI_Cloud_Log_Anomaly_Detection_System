@@ -10,6 +10,16 @@ test.describe("Member role", () => {
     await expect(page.getByRole("heading", { name: "Results" })).toBeVisible();
   });
 
+  test("F09-N3 member cannot ignore lines", async ({ page }) => {
+    await page.goto("/app/scan");
+    await page.getByRole("button", { name: "Use example" }).click();
+    await page.getByRole("button", { name: "Run scan" }).click();
+    await expect(page.getByRole("heading", { name: "Results" })).toBeVisible();
+    await page.getByRole("button", { expanded: false }).filter({ hasText: /out of memory/i }).click();
+    await expect(page.getByText(/Matched rule: Out of memory/)).toBeVisible();
+    await expect(page.getByRole("button", { name: "Ignore lines like this" })).toHaveCount(0);
+  });
+
   test("F09-N1 member sees no key, rule or retention controls, and nothing crashes", async ({ page }) => {
     const done = guard(page);
     await page.goto("/app/keys");

@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-export const alt = "Lineworth: the ten lines worth reading";
+export const alt = "Linegist: the ten lines worth reading";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -15,7 +15,7 @@ export default function OgImage() {
       <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between", background: "#0a0c10", color: "#eef0f3", padding: 72, fontFamily: "sans-serif" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 16, fontSize: 34, fontWeight: 700 }}>
           <div style={{ width: 44, height: 44, borderRadius: 10, background: "#0b7a75", display: "flex" }} />
-          Lineworth
+          Linegist
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>

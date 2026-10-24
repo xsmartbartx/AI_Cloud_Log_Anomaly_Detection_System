@@ -76,7 +76,7 @@ export function redact(text: string): string {
   return out;
 }
 
-export type DetectOptions = { rules?: Rule[]; now?: () => number };
+export type DetectOptions = { rules?: Rule[]; ignore?: Matcher[]; now?: () => number };
 
 type Candidate = {
   lineNo: number;
@@ -105,6 +105,7 @@ export function detect(input: string, opts: DetectOptions = {}): ScanResult {
   if (lines.length > LIMITS.maxLines) throw new InputError("too_many_lines", "Sample has more than 50,000 lines.");
 
   const rules = [...BUILTIN_RULES, ...(opts.rules ?? [])];
+  const ignore = opts.ignore ?? [];
   const counts = new Map<string, number>();
   const shapes = lines.map((l) => shapeOf(l.text));
   for (const s of shapes) counts.set(s, (counts.get(s) ?? 0) + 1);
@@ -117,6 +118,7 @@ export function detect(input: string, opts: DetectOptions = {}): ScanResult {
     const count = counts.get(shape)!;
     const rarity = maxCount > 1 ? 1 - Math.log(1 + count) / Math.log(1 + maxCount) : 0;
     const text = l.text.slice(0, LIMITS.maxLineChars);
+    if (ignore.some((m) => m.test(text))) return; // muted by the org: counted in totals, never reported
 
     let hit: Rule | null = null;
     for (const r of rules) {

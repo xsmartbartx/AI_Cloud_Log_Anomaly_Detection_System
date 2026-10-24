@@ -2,7 +2,11 @@
 
 Date: 2026-10-14. Angle (replica/fixes.md): "paid by the scan, flat price, hard cap, ten lines each with a reason".
 
-## Decision (2026-10-14): renamed to Lineworth
+## Decision (2026-10-16): renamed to Linegist (was Lineworth, earlier Sentinel)
+
+Chosen after screening: Linegist had no exact or near hit at USPTO, EUIPO or WIPO, and free domains and handles. The paragraph below describes the earlier Lineworth rename; code, copy, key prefix (`lgk_`), Console product id (`linegist`) and docs host (`linegist.onenexora.com`) now say Linegist.
+
+## Earlier decision (2026-10-14): renamed to Lineworth
 
 The code, copy, API key prefix (`lwk_`), Console product id (`lineworth`) and docs host (`lineworth.onenexora.com`) now say Lineworth. Internal names stay (`apps/sentinel-web`, `@anomaly/sentinel-web`) to avoid churn; rename the folder when convenient. USPTO and WIPO exact searches for Lineworth are done (no match); near-matches are listed below.
 

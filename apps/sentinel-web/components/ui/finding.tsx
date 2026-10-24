@@ -3,6 +3,7 @@ import { useState } from "react";
 import { ChevronRight } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { SeverityChip, type Severity } from "./severity";
+import { IgnoreControl } from "./ignore-control";
 
 export type FindingData = {
   rank: number;
@@ -13,7 +14,7 @@ export type FindingData = {
   detail: string;
 };
 
-export function FindingRow({ f }: { f: FindingData }) {
+export function FindingRow({ f, canIgnore = false }: { f: FindingData; canIgnore?: boolean }) {
   const [open, setOpen] = useState(false);
   return (
     <li className="border-b border-border last:border-0">
@@ -34,6 +35,7 @@ export function FindingRow({ f }: { f: FindingData }) {
         <div className="space-y-1 px-4 pb-3 pl-[4.25rem] text-sm text-muted">
           <p>Line {f.lineNo} · {f.reason === "rule" ? "Matched a rule" : "Unusual shape"}</p>
           <p>{f.detail}</p>
+          {canIgnore && <div className="pt-2 text-text"><IgnoreControl text={f.text} /></div>}
         </div>
       )}
     </li>
