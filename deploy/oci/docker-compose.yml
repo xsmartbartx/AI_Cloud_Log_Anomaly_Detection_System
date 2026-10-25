@@ -1,0 +1,86 @@
+# Linegist on one OCI VM: Postgres, a one-off migration, the app, and Caddy for HTTPS.
+# Run from this folder:  docker compose --env-file .env up -d --build
+# Only Caddy publishes ports (80, 443). The database and the app are reachable only inside the compose network.
+
+# Rotate container logs so they cannot fill the disk.
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  db:
+    image: postgres:16-alpine
+    logging: *logging
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: linegist
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: linegist
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U linegist -d linegist"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  migrate:
+    build:
+      context: ../..
+      dockerfile: apps/sentinel-web/Dockerfile
+      target: migrate
+      args:
+        NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:-}
+        NEXT_PUBLIC_CLERK_SIGN_IN_URL: ${NEXT_PUBLIC_CLERK_SIGN_IN_URL:-}
+    restart: "no"
+    logging: *logging
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://linegist:${POSTGRES_PASSWORD}@db:5432/linegist
+
+  app:
+    build:
+      context: ../..
+      dockerfile: apps/sentinel-web/Dockerfile
+      target: runtime
+      args:
+        NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:-}
+        NEXT_PUBLIC_CLERK_SIGN_IN_URL: ${NEXT_PUBLIC_CLERK_SIGN_IN_URL:-}
+    image: linegist:latest
+    logging: *logging
+    restart: unless-stopped
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    env_file: .env
+    environment:
+      # Built here so the password has one source; overrides anything of the same name in .env.
+      DATABASE_URL: postgresql://linegist:${POSTGRES_PASSWORD}@db:5432/linegist
+      APP_URL: https://${LINEGIST_HOST}
+      NODE_ENV: production
+      PG_POOL_MAX: ${PG_POOL_MAX:-10}
+
+  caddy:
+    image: caddy:2
+    logging: *logging
+    restart: unless-stopped
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      LINEGIST_HOST: ${LINEGIST_HOST:?set LINEGIST_HOST in .env}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  dbdata:
+  caddy_data:
+  caddy_config:

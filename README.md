@@ -18,6 +18,8 @@ Linegist is a NEXORA product (formerly a card on onenexora.com, earlier named Se
 | --- | --- |
 | `apps/sentinel-web` | the Next.js app: marketing site, dashboard, API, webhooks (folder name predates the product name) |
 | `packages/detector` | the pure detector: rules, outlier scoring, secret masking, ignore patterns |
+| `deploy/oci` | Docker Compose, Caddy and backup/purge scripts for hosting on an OCI VM; runbook in its README |
+| `docs/console-contract.md` | the signed usage endpoint the NEXORA Console calls |
 | `replica/` | planning and evidence: recon, architecture, design tokens, backend notes, test plan, parity, brand and trademark screening, launch, deploy, setup checklist |
 | `packages/db-client`, `packages/shared-types`, `packages/config`, `docs/` | the earlier streaming-platform spec (Kafka, Elasticsearch, models). Not part of Linegist today; kept as the roadmap's "Connect" phase |
 
@@ -59,7 +61,7 @@ Everything that does not need an account is done. Still open, and needs people o
 - The NEXORA Console contract for the signed usage endpoint (`GET /api/internal/usage`)
 - A trademark lawyer's view on the name (see [`replica/brand.md`](replica/brand.md): no exact match at USPTO, EUIPO or WIPO, one letter from Lingvist; Canada not searched)
 - NEXORA's Terms and Privacy reviewed, listing every processor
-- A real logo, production database, host and DNS
+- A real logo; then the OCI VM, DNS and production database from `deploy/oci/README.md`
 
 Details: [`replica/deploy.md`](replica/deploy.md) and [`replica/parity.md`](replica/parity.md).
 
