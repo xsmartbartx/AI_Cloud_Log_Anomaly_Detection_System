@@ -115,9 +115,10 @@ If memory is tight, build the image elsewhere and pull it (see Updates): the Nex
 1. Do steps 3 and 4 above **without** `--profile standalone`.
 2. Add a site block to the existing Caddyfile. Pick the case that matches `docker ps`:
 
-   **Caddy runs on the host (systemd):**
+   **Caddy runs on the host (systemd):** proxy to the loopback port.
    ```
    linegist.onenexora.com {
+   	import security_headers          # only if your Caddyfile defines it
    	encode zstd gzip
    	request_body {
    		max_size 6MB
@@ -126,18 +127,20 @@ If memory is tight, build the image elsewhere and pull it (see Updates): the Nex
    }
    ```
 
-   **Caddy runs in Docker:** attach the app to Caddy's network with the override file (`docker-compose.caddy-network.yml`, instructions at its top), then use
+   **Caddy runs in Docker and joins each project's network** (the convention on the NEXORA VM): the compose project is named `linegist`, so its network is `linegist_default` and the app container is `linegist-app-1`. In the Caddy stack's compose file add `linegist_default` to Caddy's `networks:` and declare it `external: true`, then use the full container name:
    ```
    linegist.onenexora.com {
+   	import security_headers          # NOT no_server_actions: Linegist uses Server Actions
    	encode zstd gzip
    	request_body {
    		max_size 6MB
    	}
-   	reverse_proxy linegist-app:3000
+   	reverse_proxy linegist-app-1:3000
    }
    ```
+   **Order matters:** an `external: true` network that does not exist yet stops Caddy from starting, which takes every site on the VM down. Bring the Linegist stack up first (that creates `linegist_default`), then change and redeploy the Caddy stack. If the Caddyfile lives in a git repo and is deployed from it, make the change there, not on the server.
 
-   Validate before reloading: `caddy validate --config /path/to/Caddyfile` (in Docker: `docker exec <caddy> caddy validate --config /etc/caddy/Caddyfile`). Reload with `caddy reload ...` (a graceful reload does not drop the other sites).
+   Validate before reloading: `docker exec <caddy> caddy validate --config /etc/caddy/Caddyfile`.
 
 3. **DNS** at Squarespace (that is where `onenexora.com` is served from, per its name servers): Domains, `onenexora.com`, DNS settings, add an **A record**, host `linegist`, value = the VM's public IP (the same one the other hosts use). The menu names may differ slightly. It must resolve before Caddy can get a certificate for the new name: `dig +short linegist.onenexora.com`.
 4. Verify: `curl -I https://linegist.onenexora.com/api/health` is 200, and the other sites still answer.

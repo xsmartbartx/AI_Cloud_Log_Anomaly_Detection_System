@@ -1,3 +1,6 @@
+# Linegist on an OCI VM. The project name is fixed so the network is always "linegist_default" and the app container
+# is always "linegist-app-1" (a Caddy running in Docker reaches it by that full name, see README).
+#
 # Linegist on an OCI VM: Postgres, a one-off migration, and the app.
 #
 # Two ways to put it on the internet:
@@ -15,6 +18,8 @@ x-logging: &logging
   options:
     max-size: "10m"
     max-file: "3"
+
+name: linegist
 
 services:
   db:
