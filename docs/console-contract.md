@@ -66,7 +66,8 @@ import { createHmac } from "node:crypto";
 
 async function linegistUsage(orgId) {
   const ts = Math.floor(Date.now() / 1000);
-  const sig = createHmac("sha256", process.env.LINEGIST_SHARED_SECRET).update(`${ts}.${orgId}`).digest("hex");
+  // The same secret Linegist has as CONSOLE_SHARED_SECRET. Use whatever variable name the Console prefers.
+  const sig = createHmac("sha256", process.env.CONSOLE_SHARED_SECRET).update(`${ts}.${orgId}`).digest("hex");
   const res = await fetch(`https://linegist.onenexora.com/api/internal/usage?org=${encodeURIComponent(orgId)}`, {
     headers: { "x-nexora-timestamp": String(ts), "x-nexora-signature": sig },
     signal: AbortSignal.timeout(5000),

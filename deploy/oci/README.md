@@ -25,10 +25,13 @@ If you later want the old `sentinel.onenexora.com` to keep working, add it as a 
 Install Docker Engine and the Compose plugin by following Docker's official instructions for your OS. Then:
 
 ```bash
-sudo git clone <your repo url> /opt/linegist     # a private repo needs a deploy key you create
+sudo mkdir -p /opt/linegist && sudo chown "$USER": /opt/linegist   # the checkout must belong to the user who deploys
+git clone <your repo url> /opt/linegist                            # a private repo needs a deploy key you create
 cd /opt/linegist/deploy/oci
 cp .env.example .env && chmod 600 .env
 ```
+
+Add your user to the `docker` group (or run the compose commands with `sudo`) so the scripts below work from cron.
 
 Edit `.env`:
 - `LINEGIST_HOST` (already `linegist.onenexora.com`)
@@ -65,15 +68,19 @@ sudo crontab -e
 ```
 
 - `purge.sh` deletes retained findings older than 30 days. It runs inside the app container, so the secret never appears on a command line.
-- `backup.sh` writes a compressed `pg_dump` to `/var/backups/linegist` (override with `BACKUP_DIR`) and keeps the newest 14. **A backup on the same VM is not enough.** Copy the files off it, for example to OCI Object Storage with the OCI CLI (which you configure), or to another machine. Run it once by hand and look at the file before trusting the schedule.
+- `backup.sh` writes a compressed `pg_dump` to `/var/backups/linegist` (override with `BACKUP_DIR`; the folder is private, mode 700, files mode 600) and keeps the newest 14. It dumps to a plain file first and checks that `pg_dump` succeeded and finished, so a failed dump exits with an error and **never deletes older backups**. **A backup on the same VM is not enough.** Copy the files off it, for example to OCI Object Storage with the OCI CLI (which you configure), or to another machine. Run it once by hand and look at the file before trusting the schedule.
 
-Restore:
+Restore (the dump uses `--clean --if-exists`, so it works on a database that already has the tables). Stop the app so nothing writes during the restore, and the whole restore runs as one transaction that stops at the first error:
 
 ```bash
-gunzip -c /var/backups/linegist/linegist-<time>.sql.gz | docker compose exec -T db psql -U linegist -d linegist
+cd /opt/linegist/deploy/oci
+docker compose stop app
+gunzip -c /var/backups/linegist/linegist-<time>.sql.gz \
+  | docker compose exec -T db psql -X -v ON_ERROR_STOP=1 --single-transaction -U linegist -d linegist
+docker compose start app
 ```
 
-Test a restore into a throwaway database at least once. An untested backup is a hope.
+The backup and restore commands were tested locally against a real Postgres 16: a good backup, a failing `pg_dump` (older backups kept), a partial dump (rejected), and a restore into a damaged, populated database that brought back the deleted and changed rows. Still do one restore rehearsal on the VM into a scratch copy before you rely on it.
 
 ## Updates
 
