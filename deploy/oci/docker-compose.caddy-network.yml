@@ -1,0 +1,19 @@
+# Only for a VM whose existing Caddy runs IN DOCKER. Attaches the Linegist app to that Caddy's network under the name
+# "linegist-app", so the Caddy container can reach it (a 127.0.0.1 port on the host is not reachable from inside a container).
+#
+#   CADDY_NETWORK=<network of your caddy container>   (find it:  docker inspect <caddy container> --format '{{json .NetworkSettings.Networks}}')
+#   docker compose -f docker-compose.yml -f docker-compose.caddy-network.yml --env-file .env up -d --build
+#
+# Then in the existing Caddyfile:  reverse_proxy linegist-app:3000
+services:
+  app:
+    networks:
+      default: {}
+      proxy:
+        aliases:
+          - linegist-app
+
+networks:
+  proxy:
+    external: true
+    name: ${CADDY_NETWORK:?set CADDY_NETWORK to the Docker network your Caddy container is on}
