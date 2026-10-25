@@ -87,7 +87,7 @@ Public DNS shows the NEXORA hosts already served from one OCI address, behind Ca
 
 `onenexora.com` is served by Squarespace DNS. Add one **A record**: host `linegist`, value = the VM's public IP (the same address the other NEXORA hosts use). Wait for `dig +short linegist.onenexora.com` to return it; Caddy fetches the certificate for the new name only once it resolves.
 
-Later, when sign-in and a scan work on the new host, change the existing `sentinel.onenexora.com` block to a permanent redirect (snippet in the runbook) and point NEXORA's product card and `/products/sentinel` at `https://linegist.onenexora.com/go`. No email DNS is needed; the app sends no email.
+Later, when sign-in and a scan work on the new host, save a copy of the existing `sentinel.onenexora.com` block, then change it to a **temporary** redirect (snippet and rollback in the runbook; make it permanent only after a few weeks) and point NEXORA's product card and `/products/sentinel` at `https://linegist.onenexora.com/go`. No email DNS is needed; the app sends no email.
 
 **Check:** `curl -I https://linegist.onenexora.com/api/health` returns 200 over HTTPS, and the other NEXORA sites still answer.
 

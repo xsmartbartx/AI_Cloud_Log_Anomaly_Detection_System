@@ -53,7 +53,7 @@ The order is automatic: Postgres becomes healthy, `migrate` applies the SQL file
 
 ```bash
 docker compose ps
-curl -s http://127.0.0.1:3100/api/health                       # works from the VM itself
+curl -s http://127.0.0.1:3100/api/health                       # works from the VM itself (use your LINEGIST_PORT if you changed it)
 curl -I https://linegist.onenexora.com/api/health               # 200 over HTTPS once DNS and the proxy are set
 ```
 
@@ -123,7 +123,7 @@ If memory is tight, build the image elsewhere and pull it (see Updates): the Nex
    	request_body {
    		max_size 6MB
    	}
-   	reverse_proxy 127.0.0.1:3100
+   	reverse_proxy 127.0.0.1:3100   # your LINEGIST_PORT, if you changed it
    }
    ```
 
@@ -147,17 +147,25 @@ If memory is tight, build the image elsewhere and pull it (see Updates): the Nex
 
 ### Cut over `sentinel.onenexora.com` (later, when Linegist works)
 
-Only once sign-in and a scan work on `linegist.onenexora.com`. Replace the existing `sentinel.onenexora.com` block with a redirect, and point NEXORA's product card at the new host:
+Only once sign-in and a scan work on `linegist.onenexora.com`. First **save a copy of the existing `sentinel.onenexora.com` block** (rollback needs it), then replace it with a **temporary** redirect, and point NEXORA's product card at the new host:
 
 ```
 sentinel.onenexora.com {
-	redir https://linegist.onenexora.com{uri} permanent
+	redir https://linegist.onenexora.com{uri} temporary
 }
 ```
 
+Use `temporary` (302) while you are still watching it: browsers cache a permanent (301) redirect for a long time, and you cannot take it back for visitors who already saw it. Switch to `permanent` a few weeks later, once you are sure.
+
 ### Roll back
 
-Nothing here touches the other sites' containers or data. To undo: remove the `linegist.onenexora.com` block and reload Caddy, delete the A record, and `docker compose down` (add `-v` only if you also want the Linegist database deleted).
+Nothing here touches the other sites' containers or data. To undo, in this order:
+1. If you already did the cutover, **put the saved original `sentinel.onenexora.com` block back** (otherwise `sentinel` keeps redirecting to a host you are removing).
+2. Remove the `linegist.onenexora.com` block, reload Caddy, and remove `linegist_default` from the Caddy stack's networks if you added it.
+3. Delete the A record.
+4. `docker compose down` in `~/linegist/deploy/oci` (add `-v` only if you also want the Linegist database deleted).
+
+A permanent (301) redirect that visitors have already received stays cached in their browsers, which is why the cutover uses a temporary one first.
 
 ## Hardening checklist
 
