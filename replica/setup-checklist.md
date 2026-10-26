@@ -73,23 +73,23 @@ curl -s -H "x-nexora-timestamp: $TS" -H "x-nexora-signature: $SIG" "http://local
 ```
 Expect JSON; a wrong signature must return 401.
 
-## 5. Host (your OCI VM)
+## 5. Host (your existing OCI VM)
 
-Hosting is on OCI with Docker Compose and Caddy. The whole runbook, with the exact commands, is [`deploy/oci/README.md`](../deploy/oci/README.md); here is what you decide and do:
+Public DNS shows the NEXORA hosts already served from one OCI address, behind Caddy. Linegist goes on that VM behind the Caddy that is already running. The runbook with the exact commands, both Caddy cases (host or Docker), the cutover and the rollback is [`deploy/oci/README.md`](../deploy/oci/README.md), section "If the VM already runs Caddy". What you do:
 
-1. Pick the VM (2 GB RAM or more for building; arm64 or x86) and attach a **reserved public IP**.
-2. Open TCP 80 and 443 in the VCN **and** in the VM's own firewall; limit 22 to your IP.
-3. Put the values from steps 1 to 4 in `deploy/oci/.env` (copy `.env.example`, `chmod 600`). `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` is baked in at image build time.
-4. `docker compose --env-file .env up -d --build`, then check `https://linegist.onenexora.com/api/health`.
-5. Add the two cron lines (purge and backup) and **copy backups off the VM**. Test a restore once.
+1. SSH in and run the read-only checks (free memory and disk, `docker ps`, what already listens on port 3100).
+2. Put the values from steps 1 to 4 in `deploy/oci/.env` (copy `.env.example`, `chmod 600`). `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` is baked in at image build time.
+3. `docker compose --env-file .env up -d --build` (no `--profile standalone`, your Caddy stays the only one on 80/443).
+4. Add the Linegist site block to the existing Caddyfile, validate it, reload.
+5. Add the two cron lines (purge and backup), copy backups off the VM, and rehearse a restore once.
 
 ## 6. DNS and redirect
 
-Add an **A record** `linegist` for `onenexora.com` pointing at the VM's reserved public IP, and wait for `dig +short linegist.onenexora.com` to return it before the first start (Caddy fetches the certificate on startup).
+`onenexora.com` is served by Squarespace DNS. Add one **A record**: host `linegist`, value = the VM's public IP (the same address the other NEXORA hosts use). Wait for `dig +short linegist.onenexora.com` to return it; Caddy fetches the certificate for the new name only once it resolves.
 
-Keep `sentinel.onenexora.com` working with a redirect (a second host block in `deploy/oci/Caddyfile`, or at NEXORA's current host). Point NEXORA's product card and `/products/sentinel` at `https://linegist.onenexora.com/go`. No email DNS is needed; the app sends no email.
+Later, when sign-in and a scan work on the new host, save a copy of the existing `sentinel.onenexora.com` block, then change it to a **temporary** redirect (snippet and rollback in the runbook; make it permanent only after a few weeks) and point NEXORA's product card and `/products/sentinel` at `https://linegist.onenexora.com/go`. No email DNS is needed; the app sends no email.
 
-**Check:** `curl -I https://linegist.onenexora.com/api/health` returns 200 over HTTPS.
+**Check:** `curl -I https://linegist.onenexora.com/api/health` returns 200 over HTTPS, and the other NEXORA sites still answer.
 
 ## 7. Go-live gate (nothing here is done by me without your explicit go)
 

@@ -1,6 +1,16 @@
-# Linegist on one OCI VM: Postgres, a one-off migration, the app, and Caddy for HTTPS.
-# Run from this folder:  docker compose --env-file .env up -d --build
-# Only Caddy publishes ports (80, 443). The database and the app are reachable only inside the compose network.
+# Linegist on an OCI VM. The project name is fixed so the network is always "linegist_default" and the app container
+# is always "linegist-app-1" (a Caddy running in Docker reaches it by that full name, see README).
+#
+# Linegist on an OCI VM: Postgres, a one-off migration, and the app.
+#
+# Two ways to put it on the internet:
+#  A) The VM already runs Caddy (or nginx): leave the "standalone" profile off. The app listens on 127.0.0.1:${LINEGIST_PORT:-3100}
+#     only, and your existing proxy sends linegist.<domain> to it. See README "If the VM already runs Caddy".
+#       docker compose --env-file .env up -d --build
+#  B) A fresh VM: turn on the "standalone" profile to also start Caddy, which gets the HTTPS certificate itself.
+#       docker compose --env-file .env --profile standalone up -d --build
+#
+# The database is never published. Only 127.0.0.1 (and, in mode B, Caddy on 80/443) accept connections.
 
 # Rotate container logs so they cannot fill the disk.
 x-logging: &logging
@@ -8,6 +18,8 @@ x-logging: &logging
   options:
     max-size: "10m"
     max-file: "3"
+
+name: linegist
 
 services:
   db:
@@ -57,6 +69,9 @@ services:
       migrate:
         condition: service_completed_successfully
     env_file: .env
+    ports:
+      # Loopback only: a proxy on this machine can reach it, the internet cannot.
+      - "127.0.0.1:${LINEGIST_PORT:-3100}:3000"
     environment:
       # Built here so the password has one source; overrides anything of the same name in .env.
       DATABASE_URL: postgresql://linegist:${POSTGRES_PASSWORD}@db:5432/linegist
@@ -66,6 +81,7 @@ services:
 
   caddy:
     image: caddy:2
+    profiles: ["standalone"]
     logging: *logging
     restart: unless-stopped
     depends_on:

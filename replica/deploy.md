@@ -38,10 +38,10 @@ Only `app/design/layout.tsx` and `app/robots.ts`. Nothing is committed or pushed
 
 ## Step 3: host and domain
 
-- **Host: OCI VM, Docker Compose, Caddy.** Full runbook in [`deploy/oci/README.md`](../deploy/oci/README.md). The image builds from `apps/sentinel-web/Dockerfile`; Postgres, a one-off migration job, the app and Caddy run from `deploy/oci/docker-compose.yml`. The daily purge and backup are host cron jobs (`purge.sh`, `backup.sh`). `vercel.json` was removed.
+- **Host: your existing OCI VM, Docker Compose, behind the Caddy that already runs there** (a fresh VM can use `--profile standalone` instead). Full runbook in [`deploy/oci/README.md`](../deploy/oci/README.md). The image builds from `apps/sentinel-web/Dockerfile`; Postgres, a one-off migration job, the app and Caddy run from `deploy/oci/docker-compose.yml`. The daily purge and backup are host cron jobs (`purge.sh`, `backup.sh`). `vercel.json` was removed.
 - **Tested locally on arm64:** the image builds (453 MB), the migration applies both SQL files and repeats cleanly, the container is healthy and runs as a non-root user, and the API scan, Console endpoint, purge endpoint and fail-closed `/app` all behave against a real Postgres. **Not tested:** anything on OCI itself, Clerk, Stripe.
 - **Build-time values:** `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and `NEXT_PUBLIC_CLERK_SIGN_IN_URL` are inlined into the bundle at image build time (passed as build args by compose); changing them needs a rebuild.
-- **DNS:** an **A record** `linegist` for `onenexora.com` to the VM's reserved public IP. Caddy gets the certificate on first start, so DNS must resolve first.
+- **DNS:** `onenexora.com` is served by Squarespace DNS. Add an **A record** `linegist` pointing at the VM's public IP (the NEXORA hosts all resolve to the same address today). The proxy can only get the certificate once it resolves.
 - HTTPS is automatic through Caddy; check it. One canonical host: `linegist.onenexora.com`. Keep `sentinel.onenexora.com` as a redirect.
 
 ## Step 4: watch it

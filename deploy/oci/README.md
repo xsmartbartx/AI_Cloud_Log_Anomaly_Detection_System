@@ -1,6 +1,6 @@
 # Deploy Linegist on an OCI VM
 
-One VM running Docker Compose: Postgres, a one-off migration, the app, and Caddy (HTTPS, automatic certificates). Everything here was built and tested locally on arm64: the migration runs and is repeatable, the app container is healthy and runs as a non-root user, and the API, Console and purge endpoints work against a real Postgres. What has **not** been tested is anything on OCI itself, plus Clerk and Stripe (they need your accounts).
+One VM running Docker Compose: Postgres, a one-off migration and the app. HTTPS comes either from **your existing Caddy** (the VM already serves other sites, see [If the VM already runs Caddy](#if-the-vm-already-runs-caddy)) or from a Caddy this stack starts for you (`--profile standalone`). Everything here was built and tested locally on arm64: the migration runs and is repeatable, the app container is healthy and runs as a non-root user, and the API, Console and purge endpoints work against a real Postgres. What has **not** been tested is anything on OCI itself, plus Clerk and Stripe (they need your accounts).
 
 ## You will need
 
@@ -42,15 +42,19 @@ Edit `.env`:
 ## 4. Start
 
 ```bash
+# Fresh VM with nothing else on ports 80/443: also start Caddy from this stack
+docker compose --env-file .env --profile standalone up -d --build
+
+# VM that already runs Caddy or nginx: do NOT start a second one (it would fight for 80/443)
 docker compose --env-file .env up -d --build
-docker compose ps
-docker compose logs -f app caddy
 ```
 
-The order is automatic: Postgres becomes healthy, `migrate` applies the SQL files and exits, then `app` starts, then Caddy. Check:
+The order is automatic: Postgres becomes healthy, `migrate` applies the SQL files and exits, then the app starts (and Caddy, with the profile). The app listens on `127.0.0.1:3100` only (`LINEGIST_PORT`). Check:
 
 ```bash
-curl -I https://linegist.onenexora.com/api/health        # 200 over HTTPS
+docker compose ps
+curl -s http://127.0.0.1:3100/api/health                       # works from the VM itself (use your LINEGIST_PORT if you changed it)
+curl -I https://linegist.onenexora.com/api/health               # 200 over HTTPS once DNS and the proxy are set
 ```
 
 ## 5. Webhooks
@@ -91,6 +95,77 @@ cd /opt/linegist && git pull && cd deploy/oci && docker compose --env-file .env 
 Migrations run on every `up` and are safe to repeat. They only move forward, so to roll back a bad migration restore a backup. To roll back code only, check out the previous commit and rebuild.
 
 To avoid building on a small VM: build the image on your machine or in CI for the VM's architecture, push it to a registry (OCIR, GHCR), set `image:` in the compose file and drop the `build:` blocks. The CI workflow already builds the image on every pull request, so a broken Dockerfile is caught before you deploy.
+
+## If the VM already runs Caddy
+
+Your public DNS already points `onenexora.com`, `sentinel`, `console`, `account` and `status` at one OCI address (`92.5.69.99` when this was written), and `sentinel.onenexora.com` answers through Caddy. If Linegist goes on that same VM, you add one site block to the Caddy that is already there, and one DNS record. Do not start a second Caddy.
+
+### Look before you change anything (read-only)
+
+```bash
+free -h; df -h /                                   # Postgres plus the app want about 1 GB free RAM and a few GB of disk
+docker ps --format 'table {{.Names}}\t{{.Ports}}'   # is Caddy in Docker or on the host? what already uses which ports?
+ss -ltnp | grep -E ':(80|443|3100)\b'              # something already on 3100? set LINEGIST_PORT to another number
+```
+
+If memory is tight, build the image elsewhere and pull it (see Updates): the Next build is the heavy part, not running it.
+
+### Bring Linegist up behind the existing proxy
+
+1. Do steps 3 and 4 above **without** `--profile standalone`.
+2. Add a site block to the existing Caddyfile. Pick the case that matches `docker ps`:
+
+   **Caddy runs on the host (systemd):** proxy to the loopback port.
+   ```
+   linegist.onenexora.com {
+   	import security_headers          # only if your Caddyfile defines it
+   	encode zstd gzip
+   	request_body {
+   		max_size 6MB
+   	}
+   	reverse_proxy 127.0.0.1:3100   # your LINEGIST_PORT, if you changed it
+   }
+   ```
+
+   **Caddy runs in Docker and joins each project's network** (the convention on the NEXORA VM): the compose project is named `linegist`, so its network is `linegist_default` and the app container is `linegist-app-1`. In the Caddy stack's compose file add `linegist_default` to Caddy's `networks:` and declare it `external: true`, then use the full container name:
+   ```
+   linegist.onenexora.com {
+   	import security_headers          # NOT no_server_actions: Linegist uses Server Actions
+   	encode zstd gzip
+   	request_body {
+   		max_size 6MB
+   	}
+   	reverse_proxy linegist-app-1:3000
+   }
+   ```
+   **Order matters:** an `external: true` network that does not exist yet stops Caddy from starting, which takes every site on the VM down. Bring the Linegist stack up first (that creates `linegist_default`), then change and redeploy the Caddy stack. If the Caddyfile lives in a git repo and is deployed from it, make the change there, not on the server.
+
+   Validate before reloading: `docker exec <caddy> caddy validate --config /etc/caddy/Caddyfile`.
+
+3. **DNS** at Squarespace (that is where `onenexora.com` is served from, per its name servers): Domains, `onenexora.com`, DNS settings, add an **A record**, host `linegist`, value = the VM's public IP (the same one the other hosts use). The menu names may differ slightly. It must resolve before Caddy can get a certificate for the new name: `dig +short linegist.onenexora.com`.
+4. Verify: `curl -I https://linegist.onenexora.com/api/health` is 200, and the other sites still answer.
+
+### Cut over `sentinel.onenexora.com` (later, when Linegist works)
+
+Only once sign-in and a scan work on `linegist.onenexora.com`. First **save a copy of the existing `sentinel.onenexora.com` block** (rollback needs it), then replace it with a **temporary** redirect, and point NEXORA's product card at the new host:
+
+```
+sentinel.onenexora.com {
+	redir https://linegist.onenexora.com{uri} temporary
+}
+```
+
+Use `temporary` (302) while you are still watching it: browsers cache a permanent (301) redirect for a long time, and you cannot take it back for visitors who already saw it. Switch to `permanent` a few weeks later, once you are sure.
+
+### Roll back
+
+Nothing here touches the other sites' containers or data. To undo, in this order:
+1. If you already did the cutover, **put the saved original `sentinel.onenexora.com` block back** (otherwise `sentinel` keeps redirecting to a host you are removing).
+2. Remove the `linegist.onenexora.com` block, reload Caddy, and remove `linegist_default` from the Caddy stack's networks if you added it.
+3. Delete the A record.
+4. `docker compose down` in `~/linegist/deploy/oci` (add `-v` only if you also want the Linegist database deleted).
+
+A permanent (301) redirect that visitors have already received stays cached in their browsers, which is why the cutover uses a temporary one first.
 
 ## Hardening checklist
 
