@@ -1,6 +1,6 @@
 # Handoff: what only the owner can do
 
-Everything else is deployed (linegist.onenexora.com, `sentinel` 302 redirect, product card, backups on cron with a tested restore). Date: 2026-10-29.
+Everything else is deployed (linegist.onenexora.com, `sentinel` 302 redirect, product card, backups on cron with a tested restore). Date: 2026-10-31.
 
 ## 1. Off-site backup (about 10 minutes)
 
@@ -17,19 +17,14 @@ Today the VM has no off-site copy of anything: `/opt/backups/offsite.env` does n
    #             OFFSITE_REMOTE=<remote>:<bucket>/nexora
    /opt/nexora/infrastructure/deployment/offsite-copy.sh   # run once, check the file arrived
    ```
-4. Add the cron line `30 3 * * * /opt/nexora/infrastructure/deployment/offsite-copy.sh >> /opt/backups/offsite.log 2>&1`.
+4. Add the cron line `0 4 * * * /opt/nexora/infrastructure/deployment/offsite-copy.sh >> /opt/backups/offsite.log 2>&1`.
 5. Tell Claude "off-site configured". It then extends the copy to `~/linegist-backups/*.sql.gz`, runs one test and adds the cron line.
 
 Do one real decrypt-and-restore from the off-site copy on your machine before trusting it.
 
-## 2. Console contract
+## 2. Console contract: done
 
-`git log` shows you wrote nearly all of `apps/console`, so you are probably the Console owner and there is no one to send this to. If someone else owns it, send them `docs/console-contract.md` and the message below.
-
-> Linegist (the former Sentinel) now has a read-only usage endpoint for the Console:
-> `GET https://linegist.onenexora.com/api/internal/usage?org=<clerk org id>`, signed with HMAC-SHA256 over `"<unix ts>.<org>"` (300 s window). Full contract and test vectors: `docs/console-contract.md` in the Linegist repo. The shared secret is `CONSOLE_SHARED_SECRET` in `~/linegist/deploy/oci/.env` on the VM; get it from the VM, never through chat. Three questions: who owns billing (Linegist runs its own Stripe checkout today), do you need a two-secret rotation overlap, and do you need a bulk endpoint for an admin overview?
-
-If it is you: read the secret from the VM, add the signer from the contract's Node example to the Console, and check it against the three test vectors before the first call.
+The Console reads Linegist usage (`apps/console/src/lib/linegist-usage.ts`, shown on `/usage` as "Linegist scans"). The shared secret is `CONSOLE_SHARED_SECRET` in `~/linegist/deploy/oci/.env`, copied to `LINEGIST_SHARED_SECRET` in `/opt/nexora/infrastructure/docker/.env.prod`. Verified 2026-10-31: a signed request from the Console container gets 404 (no usage yet) instead of 401. If the card ever disappears or shows "unavailable", the two secrets differ or one is empty; contract and test vectors are in `docs/console-contract.md`. Open questions for later: who owns billing (Linegist runs its own Stripe checkout today), a two-secret rotation overlap, and a bulk endpoint for an admin overview.
 
 ## 3. Later
 
