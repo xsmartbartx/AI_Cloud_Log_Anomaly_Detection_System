@@ -1,7 +1,7 @@
 export const metadata = { title: "Docs · Linegist" };
 
 const curl = `curl -X POST https://linegist.onenexora.com/api/v1/scans \\
-  -H "Authorization: Bearer $SENTINEL_KEY" \\
+  -H "Authorization: Bearer $LINEGIST_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{"text": "2026-10-13T09:00:01Z ERROR db connection refused\\n..."}'`;
 
