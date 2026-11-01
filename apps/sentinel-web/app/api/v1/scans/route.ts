@@ -44,5 +44,5 @@ export async function POST(req: Request) {
     const status = out.code === "quota" ? 402 : out.code === "empty" ? 400 : 413;
     return NextResponse.json({ error: out.code, message: out.message }, { status });
   }
-  return NextResponse.json({ id: out.scan.id, lineCount: out.scan.lineCount, flaggedCount: out.scan.flaggedCount, findings: out.findings });
+  return NextResponse.json({ id: out.scan.id, format: out.format, lineCount: out.scan.lineCount, flaggedCount: out.scan.flaggedCount, findings: out.findings });
 }

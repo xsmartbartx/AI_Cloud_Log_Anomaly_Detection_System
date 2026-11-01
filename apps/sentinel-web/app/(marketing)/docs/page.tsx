@@ -7,6 +7,7 @@ const curl = `curl -X POST https://linegist.onenexora.com/api/v1/scans \\
 
 const response = `{
   "id": "a1f3c2d4",
+  "format": "plain",
   "lineCount": 4812,
   "flaggedCount": 3,
   "findings": [

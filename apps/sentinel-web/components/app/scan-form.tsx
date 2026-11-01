@@ -11,6 +11,8 @@ import { runScanAction, type ScanState } from "@/lib/actions";
 import Link from "next/link";
 import { ResultActions } from "./result-actions";
 
+const FORMAT_LABEL = { json: "JSON logs", syslog: "syslog", access: "web access log", plain: "" } as const;
+
 const idle: ScanState = { status: "idle" };
 
 export function ScanForm({ sample, exhausted, canIgnore = false }: { sample: string; exhausted: boolean; canIgnore?: boolean }) {
@@ -64,7 +66,7 @@ export function ScanForm({ sample, exhausted, canIgnore = false }: { sample: str
         <section aria-live="polite" className="space-y-3">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <h2 className="text-lg">Results</h2>
-            <p className="text-xs text-muted">{state.lineCount.toLocaleString("en-US")} lines · {state.flaggedCount} flagged · scan {state.scanId}</p>
+            <p className="text-xs text-muted">{state.lineCount.toLocaleString("en-US")} lines{state.format === "plain" ? "" : ` · ${FORMAT_LABEL[state.format]}`} · {state.flaggedCount} flagged · scan {state.scanId}</p>
           </div>
           {state.findings.length > 0 && <ResultActions meta={{ scanId: state.scanId, lineCount: state.lineCount, flaggedCount: state.flaggedCount }} findings={state.findings} />}
           {state.findings.length === 0 ? (

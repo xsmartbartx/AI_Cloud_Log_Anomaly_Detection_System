@@ -1,6 +1,6 @@
 import { createHash, randomBytes } from "node:crypto";
 import RE2 from "re2";
-import { detect, InputError, LIMITS, type Finding, type Rule, type Severity } from "@anomaly/detector";
+import { detect, InputError, LIMITS, type Finding, type LogFormat, type Rule, type Severity } from "@anomaly/detector";
 import { getDb, type Db } from "./db";
 import { assertCan, type Role } from "./authz";
 import { planById, type PlanId } from "./plans";
@@ -18,7 +18,7 @@ export type ScanRow = { id: string; source: "web" | "api"; lineCount: number; by
 export type ApiKey = { id: string; name: string; prefix: string; createdAt: string; lastUsedAt: string | null; revokedAt: string | null };
 export type CustomRule = { id: string; name: string; pattern: string; severity: Severity; enabled: boolean; kind: "flag" | "ignore" };
 export type ScanOutcome =
-  | { ok: true; scan: ScanRow; findings: Finding[] }
+  | { ok: true; scan: ScanRow; findings: Finding[]; format: LogFormat }
   | { ok: false; code: "quota" | InputError["code"]; message: string };
 
 const period = (d = new Date()) => `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
@@ -85,7 +85,7 @@ export function createStore(db: Db, ctx: Ctx) {
         }
       }
       return {
-        ok: true, findings: result.findings,
+        ok: true, findings: result.findings, format: result.format,
         scan: { id: scan.id, source, lineCount: result.lineCount, byteCount: result.byteCount, flaggedCount: result.findings.length, durationMs: result.durationMs, createdAt: iso(scan.created_at), findings: retain ? result.findings : null },
       };
     } catch (e) {
