@@ -31,6 +31,15 @@ test("a scan is charged once and findings are not stored by default", async () =
   assert.equal(row.flaggedCount, out.ok && out.findings.length);
 });
 
+test("the detected log format is returned with the scan", async () => {
+  const a = createStore(db, await mkCtx("fmt1"));
+  const json = Array.from({ length: 20 }, (_, i) => `{"level":"info","msg":"ok","n":${i}}`).join("\n");
+  const out = await a.runScan(json, "web");
+  assert.ok(out.ok && out.format === "json");
+  const plain = await a.runScan(sample, "web");
+  assert.ok(plain.ok && plain.format === "plain");
+});
+
 test("invalid input is not charged", async () => {
   const a = createStore(db, await mkCtx("a2"));
   const out = await a.runScan("   \n", "web");

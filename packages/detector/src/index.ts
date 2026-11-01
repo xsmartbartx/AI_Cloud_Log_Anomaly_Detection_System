@@ -15,7 +15,10 @@ export type Finding = {
   occurrences: number;
 };
 
+export type LogFormat = "json" | "syslog" | "access" | "plain";
+
 export type ScanResult = {
+  format: LogFormat;
   lineCount: number;
   byteCount: number;
   findings: Finding[];
@@ -55,10 +58,72 @@ const SHAPE_MASKS: Array<[RegExp, string]> = [
   [/(^|[^a-z0-9_])\d+(\.\d+)?/gi, "$1<n>"], // no lookbehind: this module also runs in the browser
 ];
 
-export function shapeOf(line: string): string {
+// Identifiers such as user42 or r7x differ per line but are not information; the digit-only masks above miss them.
+// Applied only once a structured format is detected: in free text, tokens like v2 or x10 are kept (see shapeOf).
+const ID_MASK = /\b[a-z]+\d[a-z0-9]*\b/gi;
+
+function baseShape(line: string, ids = false): string {
   let s = line.slice(0, LIMITS.maxLineChars);
   for (const [re, tok] of SHAPE_MASKS) s = s.replace(re, tok);
+  if (ids) s = s.replace(ID_MASK, "<id>");
   return s.toLowerCase().replace(/\s+/g, " ").trim();
+}
+
+const SYSLOG_RE = /^(<\d{1,3}>)?(\d\s)?([A-Z][a-z]{2}\s+\d{1,2}\s\d{2}:\d{2}:\d{2}|\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\S*)\s+\S+\s+[\w./-]+(\[\d+\])?:\s/;
+const ACCESS_RE = /^\S+ \S+ \S+ \[[^\]]+\] "[A-Z]+ [^"]*"\s+\d{3}\b/;
+
+function isJsonObject(line: string): boolean {
+  const t = line.trim();
+  if (!t.startsWith("{") || !t.endsWith("}")) return false;
+  try {
+    const v = JSON.parse(t);
+    return v !== null && typeof v === "object" && !Array.isArray(v);
+  } catch {
+    return false;
+  }
+}
+
+/** Guess the log format from the first 100 lines; a format needs 60% of them to match. */
+export function detectFormat(lines: string[]): LogFormat {
+  const sample = lines.slice(0, 100);
+  if (sample.length === 0) return "plain";
+  const share = (test: (l: string) => boolean) => sample.filter(test).length / sample.length;
+  if (share(isJsonObject) >= 0.6) return "json";
+  if (share((l) => ACCESS_RE.test(l)) >= 0.6) return "access";
+  if (share((l) => SYSLOG_RE.test(l)) >= 0.6) return "syslog";
+  return "plain";
+}
+
+function shapeFor(line: string, format: LogFormat): string {
+  if (format === "json") {
+    try {
+      const o = JSON.parse(line.trim()) as Record<string, unknown>;
+      // Keep the keys and the level; the message is normalised like plain text, other values are dropped.
+      return Object.keys(o).sort().map((k) => {
+        const v = o[k];
+        if (/^(level|severity|lvl|status)$/i.test(k)) return `${k}=${String(v).toLowerCase()}`;
+        if (/^(msg|message|event)$/i.test(k) && typeof v === "string") return `${k}=${baseShape(v, true)}`;
+        return k;
+      }).join("|");
+    } catch {
+      return baseShape(line, true);
+    }
+  }
+  if (format === "access") {
+    // Method, status and a collapsed path: client, user, timestamp and URL parts differ per line and are not information.
+    const m = line.match(/"([A-Z]+) [^"]*"\s+(\d{3})\b/);
+    return m ? `${m[1].toLowerCase()} <path> ${m[2]}` : baseShape(line, true);
+  }
+  if (format === "syslog") {
+    const m = line.match(SYSLOG_RE);
+    const proc = m ? m[0].match(/\s([\w./-]+)(\[\d+\])?:\s$/)?.[1] ?? "" : "";
+    return `${proc}: ${baseShape(m ? line.slice(m[0].length) : line, true)}`;
+  }
+  return baseShape(line);
+}
+
+export function shapeOf(line: string): string {
+  return baseShape(line);
 }
 
 const REDACTIONS: Array<[RegExp, string]> = [
@@ -104,10 +169,11 @@ export function detect(input: string, opts: DetectOptions = {}): ScanResult {
   if (lines.length === 0) throw new InputError("empty", "Paste at least one log line.");
   if (lines.length > LIMITS.maxLines) throw new InputError("too_many_lines", "Sample has more than 50,000 lines.");
 
+  const format = detectFormat(lines.map((l) => l.text));
   const rules = [...BUILTIN_RULES, ...(opts.rules ?? [])];
   const ignore = opts.ignore ?? [];
   const counts = new Map<string, number>();
-  const shapes = lines.map((l) => shapeOf(l.text));
+  const shapes = lines.map((l) => shapeFor(l.text, format));
   for (const s of shapes) counts.set(s, (counts.get(s) ?? 0) + 1);
   const maxCount = Math.max(...counts.values());
   const enoughForOutliers = lines.length >= 10;
@@ -158,5 +224,5 @@ export function detect(input: string, opts: DetectOptions = {}): ScanResult {
     };
   });
 
-  return { lineCount: lines.length, byteCount, findings, durationMs: Math.max(0, now() - t0) };
+  return { format, lineCount: lines.length, byteCount, findings, durationMs: Math.max(0, now() - t0) };
 }

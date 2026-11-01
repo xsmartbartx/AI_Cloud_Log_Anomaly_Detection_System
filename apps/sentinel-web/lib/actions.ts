@@ -1,6 +1,6 @@
 "use server";
 import { revalidatePath } from "next/cache";
-import type { Finding, Severity } from "@anomaly/detector";
+import type { Finding, LogFormat, Severity } from "@anomaly/detector";
 import { z } from "zod";
 import { store, LIMITS } from "./store";
 import { ForbiddenError } from "./authz";
@@ -14,7 +14,7 @@ const msg = (e: unknown, fallback: string) => (e instanceof ForbiddenError || e 
 export type ScanState =
   | { status: "idle" }
   | { status: "error"; message: string; code: string }
-  | { status: "done"; scanId: string; lineCount: number; flaggedCount: number; durationMs: number; findings: Finding[] };
+  | { status: "done"; scanId: string; format: LogFormat; lineCount: number; flaggedCount: number; durationMs: number; findings: Finding[] };
 
 export async function runScanAction(_prev: ScanState, form: FormData): Promise<ScanState> {
   const ctx = await requireCtx();
@@ -29,7 +29,7 @@ export async function runScanAction(_prev: ScanState, form: FormData): Promise<S
     const out = await (await store()).runScan(text, "web");
     revalidatePath("/app", "layout");
     if (!out.ok) return { status: "error", code: out.code, message: out.message };
-    return { status: "done", scanId: out.scan.id, lineCount: out.scan.lineCount, flaggedCount: out.scan.flaggedCount, durationMs: out.scan.durationMs, findings: out.findings };
+    return { status: "done", scanId: out.scan.id, format: out.format, lineCount: out.scan.lineCount, flaggedCount: out.scan.flaggedCount, durationMs: out.scan.durationMs, findings: out.findings };
   } catch (e) {
     if (e instanceof ForbiddenError) return { status: "error", code: "forbidden", message: e.message };
     console.error("scan failed", e instanceof Error ? e.message : e); // never log the sample
