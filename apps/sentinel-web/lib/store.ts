@@ -1,6 +1,6 @@
-import { createHash, randomBytes } from "node:crypto";
+import { createHash, createHmac, randomBytes } from "node:crypto";
 import RE2 from "re2";
-import { detect, InputError, LIMITS, type Finding, type LogFormat, type Rule, type Severity } from "@anomaly/detector";
+import { detect, shapeKey, InputError, LIMITS, type Finding, type LogFormat, type Rule, type Severity } from "@anomaly/detector";
 import { getDb, type Db } from "./db";
 import { assertCan, can, type Role } from "./authz";
 import { planById, type PlanId } from "./plans";
@@ -13,7 +13,7 @@ import { SEVERITY_ORDER, meetsThreshold, sendAlert, validateWebhookUrl, type Ale
  * and every SQL statement is scoped by ctx.org.id. There is no query path without it.
  */
 export type Ctx = { org: Org; member: Member };
-export type Org = { id: string; clerkOrgId: string; name: string; plan: PlanId; interval: "month" | "year"; retainSamples: boolean; stripeCustomerId: string | null; subscriptionStatus: string | null };
+export type Org = { id: string; clerkOrgId: string; name: string; plan: PlanId; interval: "month" | "year"; retainSamples: boolean; trackNew: boolean; stripeCustomerId: string | null; subscriptionStatus: string | null };
 export type Member = { id: string; clerkUserId: string; email: string; role: Role };
 export type ScanRow = { id: string; source: "web" | "api"; lineCount: number; byteCount: number; flaggedCount: number; durationMs: number; createdAt: string; findings: Finding[] | null };
 export type ApiKey = { id: string; name: string; prefix: string; createdAt: string; lastUsedAt: string | null; revokedAt: string | null };
@@ -30,7 +30,7 @@ const iso = (v: unknown) => new Date(v as string).toISOString();
 type R = Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
 export const orgFromRow = (r: R): Org => ({
   id: r.id, clerkOrgId: r.clerk_org_id, name: r.name, plan: r.plan, interval: r.billing_interval,
-  retainSamples: r.retain_samples, stripeCustomerId: r.stripe_customer_id, subscriptionStatus: r.subscription_status,
+  retainSamples: r.retain_samples, trackNew: !!r.track_new, stripeCustomerId: r.stripe_customer_id, subscriptionStatus: r.subscription_status,
 });
 
 export function compileRule(pattern: string) {
@@ -54,7 +54,7 @@ export function createStore(db: Db, ctx: Ctx, deps: { transport?: Transport } = 
   async function runScan(text: string, source: "web" | "api", apiKeyId: string | null = null): Promise<ScanOutcome> {
     assertCan(role, "scan");
     if (Buffer.byteLength(text, "utf8") > LIMITS.maxBytes) return { ok: false, code: "too_large", message: "Sample is larger than 4 MB." };
-    const org = (await db.query<R>("select plan, retain_samples from organizations where id=$1", [orgId]))[0];
+    const org = (await db.query<R>("select plan, retain_samples, track_new from organizations where id=$1", [orgId]))[0];
     const limit = planById(org.plan).scans;
 
     // Atomic charge: the conditional update means concurrent scans cannot exceed the plan.
@@ -76,6 +76,7 @@ export function createStore(db: Db, ctx: Ctx, deps: { transport?: Transport } = 
         } catch { /* skip invalid */ }
       }
       const result = detect(text, { rules, ignore });
+      if (org.track_new) await markNew(result.findings, result.format);
       const retain: boolean = org.retain_samples;
       const [scan] = await db.query<R>(
         `insert into scans (org_id, member_id, api_key_id, source, line_count, byte_count, flagged_count, duration_ms)
@@ -212,11 +213,36 @@ export function createStore(db: Db, ctx: Ctx, deps: { transport?: Transport } = 
       const w = await deliver({ scanId: "00000000-0000-0000-0000-000000000000", flaggedCount: 3, format: "plain", source: "web", bySeverity: { critical: 1, high: 1, medium: 1, low: 0 } }, true);
       return w ?? "No webhook saved.";
     },
+    async setTrackNew(on: boolean) {
+      assertCan(role, "settings:write");
+      await db.query("update organizations set track_new=$2, updated_at=now() where id=$1", [orgId, on]);
+      if (!on) await db.query("delete from scan_baseline where org_id=$1", [orgId]); // nothing is kept once the option is off
+      await audit("settings.track_new", "organization", orgId, { on });
+    },
     async listMembers(): Promise<Array<Member & { name: string }>> {
       return (await db.query<R>("select id, clerk_user_id, email, role from members where org_id=$1 order by created_at", [orgId]))
         .map((m) => ({ id: m.id, clerkUserId: m.clerk_user_id, email: m.email, role: m.role, name: m.email.split("@")[0] }));
     },
   };
+
+  /**
+   * Marks findings that were not flagged in the previous scan, then replaces the baseline with this scan's hashes.
+   * Only salted HMACs of line shapes are stored. With no previous baseline nothing is marked (everything would be "new").
+   */
+  async function markNew(findings: Finding[], format: LogFormat) {
+    const row = (await db.query<R>("select salt, hashes from scan_baseline where org_id=$1", [orgId]))[0];
+    const salt: string = row?.salt ?? randomBytes(16).toString("hex");
+    const hash = (text: string) => createHmac("sha256", salt).update(shapeKey(text, format)).digest("hex").slice(0, 24);
+    const hashes = findings.map((f) => hash(f.text));
+    if (row) {
+      const before = new Set<string>(row.hashes);
+      findings.forEach((f, i) => { f.isNew = !before.has(hashes[i]); });
+    }
+    await db.query(
+      `insert into scan_baseline (org_id, salt, hashes) values ($1,$2,$3)
+       on conflict (org_id) do update set hashes=$3, updated_at=now()`,
+      [orgId, salt, [...new Set(hashes)]]);
+  }
 
   /** Sends the alert if a webhook is saved, enabled and the scan reaches its minimum severity. Records the outcome. */
   async function deliver(summary: AlertSummary, force = false): Promise<string | null> {

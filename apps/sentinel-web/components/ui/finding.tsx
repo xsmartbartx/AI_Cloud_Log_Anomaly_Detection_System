@@ -12,6 +12,7 @@ export type FindingData = {
   severity: Severity;
   reason: "rule" | "outlier";
   detail: string;
+  isNew?: boolean;
 };
 
 export function FindingRow({ f, canIgnore = false }: { f: FindingData; canIgnore?: boolean }) {
@@ -27,6 +28,7 @@ export function FindingRow({ f, canIgnore = false }: { f: FindingData; canIgnore
         <ChevronRight className={cn("mt-0.5 size-4 shrink-0 text-muted transition-transform duration-150", open && "rotate-90")} aria-hidden />
         <span className="w-6 shrink-0 text-xs tabular-nums text-muted">{f.rank}</span>
         <SeverityChip level={f.severity} />
+        {f.isNew && <span className="shrink-0 rounded border border-border px-1.5 text-[11px] leading-5 text-muted">New</span>}
         <span className={cn("min-w-0 flex-1 font-mono text-xs leading-5", open ? "whitespace-pre-wrap break-all" : "truncate")}>
           {f.text}
         </span>
