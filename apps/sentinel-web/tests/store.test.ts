@@ -256,3 +256,59 @@ test("members cannot add ignore rules", async () => {
   const m = createStore(db, await mkCtx("ign-m", "member"));
   await assert.rejects(() => m.addIgnoreRule("ERROR something specific"), ForbiddenError);
 });
+
+// --- new since last scan ---
+const base = Array.from({ length: 30 }, (_, i) => `2026-10-13T10:00:${String(i).padStart(2, "0")}Z INFO ok ${i}ms`);
+const scanWith = (...extra: string[]) => base.concat(extra).join("\n");
+
+test("new since last scan: off by default, nothing stored, no marks", async () => {
+  const a = createStore(db, await mkCtx("new1"));
+  const out = await a.runScan(scanWith("FATAL out of memory"), "web");
+  assert.ok(out.ok && out.findings.every((f) => f.isNew === undefined));
+  assert.equal((await db.query("select 1 from scan_baseline")).length, 0);
+});
+
+test("new since last scan: first scan marks nothing, later scans mark only what is new", async () => {
+  const ctx = await mkCtx("new2");
+  const a = createStore(db, ctx);
+  await a.setTrackNew(true);
+  const first = await a.runScan(scanWith("FATAL out of memory"), "web");
+  assert.ok(first.ok && first.findings.length === 1 && first.findings[0].isNew === undefined);
+  const second = await a.runScan(scanWith("FATAL out of memory", "ERROR connection refused to port 5432"), "web");
+  assert.ok(second.ok);
+  const byText = (re: RegExp) => second.ok && second.findings.find((f) => re.test(f.text))!;
+  assert.equal(byText(/out of memory/i).isNew, false);
+  assert.equal(byText(/connection refused/i).isNew, true);
+  const third = await a.runScan(scanWith("FATAL out of memory", "ERROR connection refused to port 5433"), "web"); // same shape, other number
+  assert.ok(third.ok && third.findings.every((f) => f.isNew === false));
+});
+
+test("new since last scan: the baseline is the latest scan only, and holds hashes, never log text", async () => {
+  const ctx = await mkCtx("new3");
+  const a = createStore(db, ctx);
+  await a.setTrackNew(true);
+  await a.runScan(scanWith("FATAL out of memory", "ERROR connection refused"), "web");
+  await a.runScan(scanWith("FATAL out of memory"), "web"); // connection refused drops out of the baseline
+  const again = await a.runScan(scanWith("FATAL out of memory", "ERROR connection refused"), "web");
+  assert.ok(again.ok && again.findings.find((f) => /connection refused/i.test(f.text))!.isNew === true);
+  const [row] = await db.query<Record<string, any>>("select * from scan_baseline where org_id=$1", [ctx.org.id]);
+  assert.ok(row.hashes.length >= 1 && row.hashes.every((h: string) => /^[0-9a-f]{24}$/.test(h)));
+  assert.doesNotMatch(JSON.stringify(row), /memory|refused/i);
+});
+
+test("new since last scan: turning it off deletes the baseline; members cannot change it; orgs are isolated", async () => {
+  const ctx = await mkCtx("new4");
+  const a = createStore(db, ctx);
+  await a.setTrackNew(true);
+  await a.runScan(scanWith("FATAL out of memory"), "web");
+  assert.equal((await db.query("select 1 from scan_baseline where org_id=$1", [ctx.org.id])).length, 1);
+  await a.setTrackNew(false);
+  assert.equal((await db.query("select 1 from scan_baseline where org_id=$1", [ctx.org.id])).length, 0);
+  const m = createStore(db, await mkCtx("new5", "member"));
+  await assert.rejects(() => m.setTrackNew(true), ForbiddenError);
+  const other = createStore(db, await mkCtx("new6"));
+  await other.setTrackNew(true);
+  await other.runScan(scanWith("FATAL out of memory"), "web");
+  const mine = await a.runScan(scanWith("FATAL out of memory"), "web");
+  assert.ok(mine.ok && mine.findings.every((f) => f.isNew === undefined)); // org a has it off: unaffected by org b's baseline
+});

@@ -4,7 +4,7 @@ import { Table, Th, Td } from "@/components/ui/table";
 import { store } from "@/lib/store";
 import { requireCtx } from "@/lib/auth";
 import { can } from "@/lib/authz";
-import { retentionAction } from "@/lib/actions";
+import { retentionAction, trackNewAction } from "@/lib/actions";
 import { AlertForm } from "@/components/app/alert-form";
 
 export const metadata = { title: "Settings · Linegist" };
@@ -28,6 +28,16 @@ export default async function Settings() {
           </label>
           {!manage && <span className="text-xs text-muted">Only owners and admins can change this.</span>}
           <Button size="sm" type="submit" disabled={!manage}>Save</Button>
+        </form>
+      </Card>
+      <Card className="p-5">
+        <h2 className="text-lg">New since last scan</h2>
+        <p className="mt-1 text-sm text-muted">Off by default. When on, findings that were not flagged in your previous scan get a &quot;New&quot; badge. Linegist keeps only salted hashes of the latest scan&apos;s line shapes (no log text), replaced on every scan and deleted when you turn this off.</p>
+        <form action={trackNewAction} className="mt-4 flex items-center gap-3">
+          <label className="flex items-center gap-2 text-sm">
+            <input type="checkbox" name="track" defaultChecked={org.trackNew} disabled={!manage} className="size-4 accent-[var(--c-accent)]" /> Mark new findings
+          </label>
+          <Button size="sm" type="submit" disabled={!manage}>Apply</Button>
         </form>
       </Card>
       <Card className="p-5">

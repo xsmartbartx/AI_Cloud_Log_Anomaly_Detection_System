@@ -13,6 +13,8 @@ export type Finding = {
   score: number;
   detail: string;
   occurrences: number;
+  /** Set by the app when "new since last scan" is on: true if this line shape was not flagged in the previous scan. */
+  isNew?: boolean;
 };
 
 export type LogFormat = "json" | "syslog" | "access" | "plain";
@@ -120,6 +122,11 @@ function shapeFor(line: string, format: LogFormat): string {
     return `${proc}: ${baseShape(m ? line.slice(m[0].length) : line, true)}`;
   }
   return baseShape(line);
+}
+
+/** Stable key for a line, using the rules of the detected format. Used to compare findings between scans. */
+export function shapeKey(line: string, format: LogFormat): string {
+  return shapeFor(line, format);
 }
 
 export function shapeOf(line: string): string {

@@ -71,6 +71,7 @@ export async function addRuleAction(_p: RuleState, form: FormData): Promise<Rule
 }
 export async function toggleRuleAction(form: FormData) { await noopIfForbidden(async () => (await store()).toggleRule(String(form.get("id")))); revalidatePath("/app/rules"); }
 export async function deleteRuleAction(form: FormData) { await noopIfForbidden(async () => (await store()).deleteRule(String(form.get("id")))); revalidatePath("/app/rules"); }
+export async function trackNewAction(form: FormData) { await noopIfForbidden(async () => (await store()).setTrackNew(form.get("track") === "on")); revalidatePath("/app/settings"); }
 export async function retentionAction(form: FormData) { await noopIfForbidden(async () => (await store()).setRetention(form.get("retain") === "on")); revalidatePath("/app/settings"); }
 
 export type IgnoreResult = { ok: true } | { ok: false; message: string };
