@@ -20,6 +20,14 @@ test.describe("Member role", () => {
     await expect(page.getByRole("button", { name: "Ignore lines like this" })).toHaveCount(0);
   });
 
+  test("F09-N4 member cannot change alerts or new-since-last-scan", async ({ page }) => {
+    await page.goto("/app/settings");
+    await expect(page.getByRole("button", { name: "Set webhook" })).toBeDisabled();
+    await expect(page.getByRole("button", { name: "Apply" })).toBeDisabled();
+    await expect(page.getByLabel(/Webhook URL/)).toBeDisabled();
+    await expect(page.getByText(/whsec_/)).toHaveCount(0);
+  });
+
   test("F09-N1 member sees no key, rule or retention controls, and nothing crashes", async ({ page }) => {
     const done = guard(page);
     await page.goto("/app/keys");
