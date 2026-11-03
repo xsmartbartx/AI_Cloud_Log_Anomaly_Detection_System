@@ -31,7 +31,7 @@ export function AlertForm({ url, kind, minSeverity, enabled, saved, manage }: Pr
         <label className="flex h-10 items-center gap-2 text-sm">
           <input type="checkbox" name="enabled" defaultChecked={saved ? enabled : true} disabled={!manage} className="size-4 accent-[var(--c-accent)]" /> On
         </label>
-        <Button type="submit" loading={pending} disabled={!manage}>Save webhook</Button>
+        <Button type="submit" loading={pending} disabled={!manage}>Set webhook</Button>
       </form>
       {state.status === "ok" && <Alert tone="success">{state.message}</Alert>}
       {saved && manage && (
