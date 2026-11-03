@@ -2,10 +2,11 @@ import { createHash, randomBytes } from "node:crypto";
 import RE2 from "re2";
 import { detect, InputError, LIMITS, type Finding, type LogFormat, type Rule, type Severity } from "@anomaly/detector";
 import { getDb, type Db } from "./db";
-import { assertCan, type Role } from "./authz";
+import { assertCan, can, type Role } from "./authz";
 import { planById, type PlanId } from "./plans";
 import { requireCtx } from "./auth";
 import { validateIgnorePattern } from "./ignore-validate";
+import { SEVERITY_ORDER, meetsThreshold, sendAlert, validateWebhookUrl, type AlertKind, type AlertSummary, type Transport } from "./alerts";
 
 /**
  * Data layer. Every function runs inside a Ctx (org + member from the verified session)
@@ -16,6 +17,7 @@ export type Org = { id: string; clerkOrgId: string; name: string; plan: PlanId; 
 export type Member = { id: string; clerkUserId: string; email: string; role: Role };
 export type ScanRow = { id: string; source: "web" | "api"; lineCount: number; byteCount: number; flaggedCount: number; durationMs: number; createdAt: string; findings: Finding[] | null };
 export type ApiKey = { id: string; name: string; prefix: string; createdAt: string; lastUsedAt: string | null; revokedAt: string | null };
+export type AlertWebhook = { url: string; kind: AlertKind; minSeverity: Severity; enabled: boolean; lastStatus: string | null; lastAttemptAt: string | null; secret: string | null };
 export type CustomRule = { id: string; name: string; pattern: string; severity: Severity; enabled: boolean; kind: "flag" | "ignore" };
 export type ScanOutcome =
   | { ok: true; scan: ScanRow; findings: Finding[]; format: LogFormat }
@@ -36,7 +38,9 @@ export function compileRule(pattern: string) {
   try { return new RE2(pattern, "i"); } catch { throw new Error("Pattern is not a valid regular expression."); }
 }
 
-export function createStore(db: Db, ctx: Ctx) {
+export function createStore(db: Db, ctx: Ctx, deps: { transport?: Transport } = {}) {
+  const pending = new Set<Promise<void>>();
+  const track = (p: Promise<void>) => { pending.add(p); void p.finally(() => pending.delete(p)); };
   const orgId = ctx.org.id;
   const role = ctx.member.role;
 
@@ -84,6 +88,10 @@ export function createStore(db: Db, ctx: Ctx) {
             [scan.id, orgId, f.rank, f.lineNo, f.text, f.severity, f.reason, /^[0-9a-f-]{36}$/.test(f.ruleId ?? "") ? f.ruleId : null, f.score]);
         }
       }
+      track(notify({
+        scanId: scan.id, flaggedCount: result.findings.length, format: result.format, source,
+        bySeverity: Object.fromEntries(SEVERITY_ORDER.map((s) => [s, result.findings.filter((f) => f.severity === s).length])) as AlertSummary["bySeverity"],
+      }));
       return {
         ok: true, findings: result.findings, format: result.format,
         scan: { id: scan.id, source, lineCount: result.lineCount, byteCount: result.byteCount, flaggedCount: result.findings.length, durationMs: result.durationMs, createdAt: iso(scan.created_at), findings: retain ? result.findings : null },
@@ -172,11 +180,56 @@ export function createStore(db: Db, ctx: Ctx) {
       await db.query("update organizations set retain_samples=$2, updated_at=now() where id=$1", [orgId, on]);
       await audit("settings.retention", "organization", orgId, { on });
     },
+    /** Resolves when every alert sent by this store has finished (for tests and graceful shutdown). */
+    async alertsSettled() { await Promise.allSettled([...pending]); },
+    async getAlertWebhook(): Promise<AlertWebhook | null> {
+      const w = (await db.query<R>("select url, kind, min_severity, enabled, last_status, last_attempt_at, secret from alert_webhooks where org_id=$1", [orgId]))[0];
+      if (!w) return null;
+      return {
+        url: w.url, kind: w.kind, minSeverity: w.min_severity, enabled: w.enabled, lastStatus: w.last_status,
+        lastAttemptAt: w.last_attempt_at ? iso(w.last_attempt_at) : null,
+        secret: can(role, "settings:write") ? w.secret : null, // the signing secret is for owners and admins only
+      };
+    },
+    async setAlertWebhook(input: { url: string; kind: AlertKind; minSeverity: Severity; enabled: boolean }) {
+      assertCan(role, "settings:write");
+      const checked = validateWebhookUrl(input.url);
+      if (!checked.ok) throw new Error(checked.message);
+      await db.query(
+        `insert into alert_webhooks (org_id, url, kind, min_severity, enabled, secret) values ($1,$2,$3,$4,$5,$6)
+         on conflict (org_id) do update set url=$2, kind=$3, min_severity=$4, enabled=$5, updated_at=now()`,
+        [orgId, checked.url, input.kind, input.minSeverity, input.enabled, "whsec_" + randomBytes(24).toString("hex")]);
+      await audit("alerts.set", "organization", orgId, { kind: input.kind, minSeverity: input.minSeverity, enabled: input.enabled, host: new URL(checked.url).hostname });
+    },
+    async removeAlertWebhook() {
+      assertCan(role, "settings:write");
+      await db.query("delete from alert_webhooks where org_id=$1", [orgId]);
+      await audit("alerts.remove", "organization", orgId, null);
+    },
+    /** Sends a sample alert to the saved URL and returns the outcome ('ok', 'http 500', 'error: ...'). */
+    async sendTestAlert(): Promise<string> {
+      assertCan(role, "settings:write");
+      const w = await deliver({ scanId: "00000000-0000-0000-0000-000000000000", flaggedCount: 3, format: "plain", source: "web", bySeverity: { critical: 1, high: 1, medium: 1, low: 0 } }, true);
+      return w ?? "No webhook saved.";
+    },
     async listMembers(): Promise<Array<Member & { name: string }>> {
       return (await db.query<R>("select id, clerk_user_id, email, role from members where org_id=$1 order by created_at", [orgId]))
         .map((m) => ({ id: m.id, clerkUserId: m.clerk_user_id, email: m.email, role: m.role, name: m.email.split("@")[0] }));
     },
   };
+
+  /** Sends the alert if a webhook is saved, enabled and the scan reaches its minimum severity. Records the outcome. */
+  async function deliver(summary: AlertSummary, force = false): Promise<string | null> {
+    const w = (await db.query<R>("select url, kind, min_severity, secret, enabled from alert_webhooks where org_id=$1", [orgId]))[0];
+    if (!w || (!force && (!w.enabled || !meetsThreshold(summary.bySeverity, w.min_severity)))) return null;
+    const status = await sendAlert({ url: w.url, kind: w.kind, minSeverity: w.min_severity, secret: w.secret }, summary, deps.transport);
+    await db.query("update alert_webhooks set last_status=$2, last_attempt_at=now() where org_id=$1", [orgId, status]);
+    return status;
+  }
+  /** Alerts never block or fail a scan. */
+  async function notify(summary: AlertSummary) {
+    try { await deliver(summary); } catch { /* the scan result is already final */ }
+  }
 
   async function audit(action: string, resourceType: string, resourceId: string | null, details: unknown) {
     await db.query("insert into audit_logs (org_id, member_id, action, resource_type, resource_id, details) values ($1,$2,$3,$4,$5,$6)",
