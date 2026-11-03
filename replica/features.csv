@@ -22,7 +22,7 @@ Upgrade flow via NEXORA billing,billing,should,yes,partial,"Stripe Checkout + po
 Status page link,trust,should,yes,yes,footer links to status.onenexora.com
 Mark finding true/false positive (feedback),results,should,no,no,"entrepreneur: noise theme, 5 comments (1 source). Store rule id / shape hash only, not text"
 Opt-in sample retention,privacy,could,no,yes,"retains redacted findings only, not full sample"
-Webhook/Slack alerts on scan,alerts,could,no,no,repo alert tables
+Webhook/Slack alerts on scan,alerts,could,no,yes,"signed JSON or Slack message at a chosen severity; counts and link only, no log text; https + public addresses only (SSRF-safe lookup)"
 Log format auto-detect (JSON/syslog/nginx),detection,could,unknown,no,
 Live cloud log connections,connect,could,roadmap,skip,streaming platform; deferred
 AI/LLM deep analysis,detection,could,roadmap,skip,needs model decision

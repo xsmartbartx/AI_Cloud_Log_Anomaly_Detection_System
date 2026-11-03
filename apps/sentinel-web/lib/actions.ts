@@ -88,3 +88,22 @@ export async function ignoreLinesAction(pattern: string): Promise<IgnoreResult> 
   revalidatePath("/app/rules");
   return { ok: true };
 }
+
+export type AlertState = { status: "idle" } | { status: "error"; message: string } | { status: "ok"; message: string };
+const alertInput = z.object({ url: z.string(), kind: z.enum(["json", "slack"]), minSeverity: z.enum(SEVERITIES) });
+export async function saveAlertAction(_p: AlertState, form: FormData): Promise<AlertState> {
+  const parsed = alertInput.safeParse({ url: form.get("url"), kind: form.get("kind"), minSeverity: form.get("minSeverity") });
+  if (!parsed.success) return { status: "error", message: "Check the URL and the options." };
+  try { await (await store()).setAlertWebhook({ ...parsed.data, minSeverity: parsed.data.minSeverity as Severity, enabled: form.get("enabled") === "on" }); }
+  catch (e) { return { status: "error", message: msg(e, "Could not save the webhook.") }; }
+  revalidatePath("/app/settings");
+  return { status: "ok", message: "Saved." };
+}
+export async function removeAlertAction() { await noopIfForbidden(async () => (await store()).removeAlertWebhook()); revalidatePath("/app/settings"); }
+export async function testAlertAction(): Promise<AlertState> {
+  try {
+    const status = await (await store()).sendTestAlert();
+    revalidatePath("/app/settings");
+    return status === "ok" ? { status: "ok", message: "Test alert delivered." } : { status: "error", message: `Test alert failed: ${status}.` };
+  } catch (e) { return { status: "error", message: msg(e, "Could not send the test alert.") }; }
+}
