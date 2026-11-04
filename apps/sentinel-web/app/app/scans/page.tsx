@@ -19,7 +19,7 @@ export default async function History() {
           <tbody>
             {scans.map((s) => (
               <tr key={s.id}>
-                <Td><Link className="font-mono text-accent underline" href={`/app/scans/${s.id}`}>{s.id}</Link></Td>
+                <Td><Link className="font-mono text-link underline" href={`/app/scans/${s.id}`}>{s.id}</Link></Td>
                 <Td>{s.source}</Td><Td>{n(s.lineCount)}</Td><Td>{(s.byteCount / 1024).toFixed(1)} KB</Td><Td>{s.flaggedCount}</Td><Td>{ago(s.createdAt)}</Td>
               </tr>
             ))}

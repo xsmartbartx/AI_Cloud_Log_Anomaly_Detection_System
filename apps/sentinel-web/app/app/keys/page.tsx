@@ -17,7 +17,7 @@ export default async function Keys() {
     <div className="max-w-4xl space-y-6">
       <div>
         <h1 className="text-xl">API keys</h1>
-        <p className="mt-1 text-sm text-muted">Use a key to scan from scripts and CI. See the <a className="text-accent underline" href="/docs">quickstart</a>.</p>
+        <p className="mt-1 text-sm text-muted">Use a key to scan from scripts and CI. See the <a className="text-link underline" href="/docs">quickstart</a>.</p>
       </div>
       {manage ? <KeyForm /> : <p className="text-sm text-muted">Only owners and admins can create or revoke keys.</p>}
       {keys.length === 0 ? (

@@ -7,7 +7,7 @@ export function Card({ className, ...rest }: React.HTMLAttributes<HTMLDivElement
 export function StatTile({ label, value, note, loading }: { label: string; value?: string; note?: string; loading?: boolean }) {
   return (
     <Card className="p-4">
-      <p className="text-xs uppercase tracking-wide text-muted">{label}</p>
+      <p className="text-xs font-medium text-muted">{label}</p>
       {loading ? (
         <div className="mt-2 h-8 w-20 animate-pulse rounded-sm bg-canvas" aria-label="Loading" />
       ) : (

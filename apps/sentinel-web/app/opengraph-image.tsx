@@ -12,19 +12,19 @@ const lines = [
 export default function OgImage() {
   return new ImageResponse(
     (
-      <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between", background: "#0a0c10", color: "#eef0f3", padding: 72, fontFamily: "sans-serif" }}>
+      <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between", background: "#09090b", color: "#f4f4f5", padding: 72, fontFamily: "sans-serif" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 16, fontSize: 34, fontWeight: 700 }}>
-          <div style={{ width: 44, height: 44, borderRadius: 10, background: "#0b7a75", display: "flex" }} />
+          <div style={{ width: 44, height: 44, borderRadius: 10, background: "#4f46e5", display: "flex" }} />
           Linegist
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             {lines.map((l, i) => (
-              <div key={i} style={{ display: "flex", width: l.w, height: l.hot ? 18 : 10, borderRadius: 9, background: l.hot ? "#3fb8b0" : "#2b313a" }} />
+              <div key={i} style={{ display: "flex", width: l.w, height: l.hot ? 18 : 10, borderRadius: 9, background: l.hot ? "#818cf8" : "#27272a" }} />
             ))}
           </div>
           <div style={{ display: "flex", fontSize: 76, fontWeight: 700, lineHeight: 1.05, letterSpacing: -2 }}>The ten lines worth reading.</div>
-          <div style={{ display: "flex", fontSize: 30, color: "#a3acb8" }}>Flat price per scan. Hard cap. Nothing stored by default.</div>
+          <div style={{ display: "flex", fontSize: 30, color: "#a1a1aa" }}>Flat price per scan. Hard cap. Nothing stored by default.</div>
         </div>
       </div>
     ),
