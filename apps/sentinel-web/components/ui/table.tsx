@@ -8,7 +8,7 @@ export function Table({ className, ...rest }: React.TableHTMLAttributes<HTMLTabl
   );
 }
 export const Th = (p: React.ThHTMLAttributes<HTMLTableCellElement>) => (
-  <th scope="col" className="border-b border-border bg-surface px-4 py-2 text-xs uppercase tracking-wide text-muted" {...p} />
+  <th scope="col" className="border-b border-border bg-surface px-4 py-2 text-xs font-medium text-muted" {...p} />
 );
 export const Td = (p: React.TdHTMLAttributes<HTMLTableCellElement>) => (
   <td className="border-b border-border px-4 py-3 last:border-b-0" {...p} />

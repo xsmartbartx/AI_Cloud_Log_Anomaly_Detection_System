@@ -40,7 +40,7 @@ export default function Landing() {
   return (
     <>
       <section className="mx-auto max-w-content px-4 pb-16 pt-20 text-center sm:px-6 sm:pt-28">
-        <p className="text-sm font-medium text-accent">Linegist · Beta</p>
+        <p className="text-sm font-medium text-link">Linegist · Beta</p>
         <h1 className="mx-auto mt-3 max-w-3xl text-[44px] font-bold leading-[1.05] tracking-tight sm:text-display">
           The ten lines worth reading.
         </h1>
@@ -90,7 +90,7 @@ export default function Landing() {
           <div className="mt-8 grid gap-6 md:grid-cols-3">
             {steps.map(([n, h, b]) => (
               <div key={n}>
-                <p className="text-sm tabular-nums text-accent">{n}</p>
+                <p className="text-sm tabular-nums text-link">{n}</p>
                 <h3 className="mt-1 text-lg">{h}</h3>
                 <p className="mt-2 text-sm text-muted">{b}</p>
               </div>
@@ -128,7 +128,7 @@ export default function Landing() {
               </div>
             ))}
           </div>
-          <p className="mt-6 text-sm"><Link className="text-accent underline" href="/pricing">Full pricing and what each plan includes</Link></p>
+          <p className="mt-6 text-sm"><Link className="text-link underline" href="/pricing">Full pricing and what each plan includes</Link></p>
         </div>
       </section>
 

@@ -21,7 +21,7 @@ export default async function ScanDetail({ params }: { params: Promise<{ id: str
         <EmptyState
           title="Findings were not kept"
           body="Linegist does not store log text by default, so only counts are saved. Turn on retention to keep findings for new scans."
-          action={<Link className="text-sm text-accent underline" href="/app/settings">Open Settings</Link>}
+          action={<Link className="text-sm text-link underline" href="/app/settings">Open Settings</Link>}
         />
       ) : scan.findings.length === 0 ? (
         <EmptyState title="Nothing stood out" body="No rule matched and no line looked unusual in this sample." />

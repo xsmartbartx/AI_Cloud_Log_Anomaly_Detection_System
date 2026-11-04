@@ -9,3 +9,18 @@
   :focus-visible { outline: 2px solid var(--c-accent); outline-offset: 2px; }
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 }
+
+/* Clerk's native CSS variables, so its components use the same palette in light and dark. */
+:root {
+  --clerk-color-primary: var(--c-accent);
+  --clerk-color-primary-foreground: var(--c-on-accent);
+  --clerk-color-background: var(--c-bg);
+  --clerk-color-foreground: var(--c-text);
+  --clerk-color-muted-foreground: var(--c-text-muted);
+  --clerk-color-neutral: var(--c-text);
+  --clerk-color-border: var(--c-border);
+  --clerk-color-input: var(--c-bg);
+  --clerk-color-input-foreground: var(--c-text);
+  --clerk-color-danger: var(--c-danger);
+  --clerk-border-radius: var(--r-md);
+}

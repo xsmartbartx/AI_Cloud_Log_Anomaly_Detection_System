@@ -25,7 +25,7 @@ export function AppShell({ org, user, children }: { org: string; user: string; c
     <div className="min-h-screen bg-canvas">
       <header className="sticky top-0 z-20 flex h-12 items-center justify-between border-b border-border bg-bg px-4">
         <Link href="/app" className="flex items-center gap-2 text-sm font-semibold">
-          <AlignLeft className="size-4 text-accent" aria-hidden /> Linegist
+          <AlignLeft className="size-4 text-link" aria-hidden /> Linegist
         </Link>
         <div className="flex items-center gap-3 text-xs text-muted">
           <span className="hidden sm:inline">{org}</span>

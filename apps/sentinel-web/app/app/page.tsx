@@ -25,7 +25,7 @@ export default async function Overview() {
       </div>
       <Card className="p-4">
         <QuotaMeter used={usage.used} limit={usage.limit} />
-        <p className="mt-3 text-xs text-muted">{usage.plan.name} plan. <Link className="text-accent underline" href="/app/usage">Manage plan</Link></p>
+        <p className="mt-3 text-xs text-muted">{usage.plan.name} plan. <Link className="text-link underline" href="/app/usage">Manage plan</Link></p>
       </Card>
       <section className="space-y-3">
         <h2 className="text-lg">Recent scans</h2>
@@ -37,7 +37,7 @@ export default async function Overview() {
             <tbody>
               {scans.map((s) => (
                 <tr key={s.id}>
-                  <Td><Link className="font-mono text-accent underline" href={`/app/scans/${s.id}`}>{s.id}</Link></Td>
+                  <Td><Link className="font-mono text-link underline" href={`/app/scans/${s.id}`}>{s.id}</Link></Td>
                   <Td>{s.source}</Td><Td>{n(s.lineCount)}</Td><Td>{s.flaggedCount}</Td><Td>{ago(s.createdAt)}</Td>
                 </tr>
               ))}

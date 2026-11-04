@@ -9,7 +9,7 @@ export default {
       colors: {
         bg: c("bg"), canvas: c("bg-canvas"), surface: c("surface"), border: c("border"),
         "border-input": c("border-input"), text: c("text"), muted: c("text-muted"),
-        accent: c("accent"), "accent-hover": c("accent-hover"), "on-accent": c("on-accent"),
+        accent: c("accent"), "accent-hover": c("accent-hover"), "on-accent": c("on-accent"), link: c("link"),
         danger: c("danger"), success: c("success"), warning: c("warning"),
         "sev-critical": c("sev-critical"), "sev-critical-bg": c("sev-critical-bg"),
         "sev-high": c("sev-high"), "sev-high-bg": c("sev-high-bg"),

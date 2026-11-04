@@ -27,7 +27,7 @@ export default function DesignPage() {
     <main className="mx-auto max-w-content space-y-12 px-4 py-12 sm:px-6">
       <header className="flex items-end justify-between">
         <div>
-          <p className="text-xs uppercase tracking-wide text-muted">Design system</p>
+          <p className="text-xs font-medium text-muted">Design system</p>
           <h1 className="text-2xl">Linegist primitives</h1>
         </div>
         <Button variant="secondary" onClick={toggle}>Theme: {theme}</Button>

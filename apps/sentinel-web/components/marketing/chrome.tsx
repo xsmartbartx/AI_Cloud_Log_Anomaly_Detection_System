@@ -4,7 +4,7 @@ import { AlignLeft } from "lucide-react";
 export function Wordmark() {
   return (
     <Link href="/" className="flex items-center gap-2 font-semibold">
-      <AlignLeft className="size-5 text-accent" aria-hidden />
+      <AlignLeft className="size-5 text-link" aria-hidden />
       Linegist
     </Link>
   );
@@ -12,8 +12,8 @@ export function Wordmark() {
 
 export function MarketingHeader() {
   return (
-    <header className="sticky top-0 z-20 border-b border-border bg-bg/80 backdrop-blur">
-      <div className="mx-auto flex h-[52px] max-w-content items-center justify-between px-4 sm:px-6">
+    <header className="sticky top-0 z-40 border-b border-border bg-bg/80 backdrop-blur">
+      <div className="mx-auto flex h-16 max-w-content items-center justify-between px-4 sm:px-6">
         <Wordmark />
         <nav aria-label="Main" className="flex items-center gap-1 text-sm">
           <Link className="hidden rounded-md px-3 py-1.5 text-muted hover:text-text sm:block" href="/#how">How it works</Link>

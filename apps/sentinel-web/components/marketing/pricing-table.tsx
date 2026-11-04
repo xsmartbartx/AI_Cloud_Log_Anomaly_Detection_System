@@ -54,7 +54,7 @@ export function PricingTable({ currentPlan, checkout }: { currentPlan?: string; 
                 ))}
               </ul>
               {current ? (
-                <p className="mt-5 text-center text-sm font-semibold text-accent">Current plan</p>
+                <p className="mt-5 text-center text-sm font-semibold text-link">Current plan</p>
               ) : checkout && p.monthly > 0 ? (
                 <button type="button" disabled={busy !== null} onClick={() => choose(p.id)} className="mt-5 inline-flex h-9 items-center justify-center rounded-md border border-border-input text-sm font-semibold hover:bg-canvas disabled:opacity-50">
                   {busy === p.id ? "Opening checkout" : "Choose " + p.name}
