@@ -20,7 +20,7 @@
     "packages/*"
   ],
   "devDependencies": {
-    "@prisma/client": "^7.4.2",
-    "prisma": "^7.4.2"
+    "@prisma/client": "^7.10.1",
+    "prisma": "^7.10.1"
   }
 }
